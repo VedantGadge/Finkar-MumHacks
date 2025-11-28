@@ -8,11 +8,16 @@ import Tracker from './Tracker';
 import Chatbot from './Chatbot';
 import Learning from './Learning';
 import Stocks from './Stocks';
-import { useFinance } from '../contexts/FinanceContext';
+import { fetchTransactions } from '../services/transactionsService';
+import { fetchGoals } from '../services/goalsService';
+import { fetchBudgets } from '../services/budgetService';
+import { fetchLiabilities } from '../services/liabilitiesService';
 import FinancialHealthCard from '../components/dashboard/FinancialHealthCard';
 import QuickActions from '../components/dashboard/QuickActions';
 import UpcomingObligations from '../components/dashboard/UpcomingObligations';
 import RecentActivity from '../components/dashboard/RecentActivity';
+import GoalsOverview from '../components/dashboard/GoalsOverview';
+import BudgetOverview from '../components/dashboard/BudgetOverview';
 
 function Dashboard() {
     const [checklistItems, setChecklistItems] = useState([
@@ -24,6 +29,14 @@ function Dashboard() {
     const [activeTab, setActiveTab] = useState(0);
     const [isSquished, setIsSquished] = useState(false);
 
+    // State for API data
+    const [transactions, setTransactions] = useState([]);
+    const [goals, setGoals] = useState([]);
+    const [budgets, setBudgets] = useState(null);
+    const [loans, setLoans] = useState([]);
+    const [creditCards, setCreditCards] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
     // Trigger squish effect when tab changes
     useEffect(() => {
         setIsSquished(true);
@@ -31,8 +44,77 @@ function Dashboard() {
         return () => clearTimeout(timer);
     }, [activeTab]);
 
-    // Get finance data from context
-    const { transactions, loans, creditCards } = useFinance();
+    // Fetch all data on component mount
+    useEffect(() => {
+        const loadDashboardData = async () => {
+            try {
+                setIsLoading(true);
+                const userId = 1; // Hardcoded user ID
+
+                // Fetch all data in parallel
+                const [transactionsData, goalsData, budgetsData, liabilitiesData] = await Promise.all([
+                    fetchTransactions(userId).catch(() => ({ transactions: [] })),
+                    fetchGoals(userId).catch(() => []),
+                    fetchBudgets(userId).catch(() => ({ budgets: [] })),
+                    fetchLiabilities(userId).catch(() => ({ loans: [], credit_cards: [] }))
+                ]);
+
+                // Map transactions
+                const transactionsArray = transactionsData.transactions || [];
+                const mappedTransactions = transactionsArray.map(txn => ({
+                    id: txn.id,
+                    date: txn.transaction_date,
+                    desc: txn.narration,
+                    type: txn.type === 'CREDIT' ? 'income' : 'expense',
+                    amount: txn.amount.toString(),
+                    category: txn.category
+                }));
+
+                // Map goals
+                const goalsArray = Array.isArray(goalsData) ? goalsData : (goalsData.goals || []);
+                const mappedGoals = goalsArray.map(goal => ({
+                    id: goal.id,
+                    name: goal.name,
+                    target: goal.target,
+                    current: goal.saved || 0,
+                    date: goal.deadline,
+                    percent: goal.percent || 0
+                }));
+
+                // Map budgets
+                // Budget API returns a summary object, not an array
+
+                // Map liabilities
+                const mappedLoans = (liabilitiesData.loans || []).map(loan => ({
+                    id: loan.id,
+                    name: loan.name,
+                    emi: loan.emi_amount,
+                    nextDue: loan.next_due_date,
+                    principal: loan.principal_amount
+                }));
+
+                const mappedCreditCards = (liabilitiesData.credit_cards || []).map(card => ({
+                    id: card.id,
+                    name: card.card_name,
+                    outstanding: card.outstanding_amount,
+                    limit: card.limit_amount,
+                    nextDue: card.due_date
+                }));
+
+                setTransactions(mappedTransactions);
+                setGoals(mappedGoals);
+                setBudgets(budgetsData);
+                setLoans(mappedLoans);
+                setCreditCards(mappedCreditCards);
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadDashboardData();
+    }, []);
 
     // Calculate financial metrics
     const totalIncome = useMemo(() =>
@@ -86,6 +168,36 @@ function Dashboard() {
         return obligations.sort((a, b) => new Date(a.date) - new Date(b.date));
     }, [loans, creditCards]);
 
+    // Calculate spending by category for pie chart
+    const spendingByCategory = useMemo(() => {
+        const expenses = transactions.filter(t => t.type === 'expense');
+        const categoryTotals = {};
+
+        expenses.forEach(txn => {
+            const category = txn.category || 'Other';
+            categoryTotals[category] = (categoryTotals[category] || 0) + parseFloat(txn.amount || 0);
+        });
+
+        // Convert to array and sort by amount
+        const categoriesArray = Object.entries(categoryTotals)
+            .map(([name, amount]) => ({ name, amount }))
+            .sort((a, b) => b.amount - a.amount);
+
+        // Get top 3 categories
+        const top3 = categoriesArray.slice(0, 3);
+        const totalExpenses = top3.reduce((sum, cat) => sum + cat.amount, 0);
+
+        // Calculate percentages
+        const categoriesWithPercent = top3.map(cat => ({
+            ...cat,
+            percent: totalExpenses > 0 ? (cat.amount / totalExpenses) * 100 : 0
+        }));
+
+        return categoriesWithPercent;
+    }, [transactions]);
+
+    // Define colors for pie chart segments
+    const categoryColors = ['#047857', '#059669', '#10B981', '#34D399', '#6EE7B7'];
 
 
     const toggleComplete = (id) => {
@@ -144,6 +256,18 @@ function Dashboard() {
                 onAskAI={() => setActiveTab(2)}
             />
 
+            {/* Budget Overview */}
+            <BudgetOverview
+                budget={budgets}
+                onManageBudget={() => setActiveTab(1)}
+            />
+
+            {/* Goals Overview */}
+            <GoalsOverview
+                goals={goals}
+                onTrackGoal={() => setActiveTab(1)}
+            />
+
             {/* Upcoming Obligations */}
             <UpcomingObligations obligations={upcomingObligations} />
 
@@ -157,73 +281,76 @@ function Dashboard() {
                     <div className="chart-section">
                         <div className="chart-container">
                             <svg viewBox="0 0 200 200" className="pie-chart">
-                                {/* FAMILY – 45% */}
-                                <motion.circle
-                                    cx="100"
-                                    cy="100"
-                                    r="80"
-                                    fill="transparent"
-                                    stroke="#047857"
-                                    strokeWidth="80"
-                                    initial={{ strokeDasharray: `0 ${2 * Math.PI * 80}` }}
-                                    animate={{
-                                        strokeDasharray: `${2 * Math.PI * 80 * 0.45} ${2 * Math.PI * 80}`
-                                    }}
-                                    transition={{ duration: 1.2, ease: "easeOut" }}
-                                />
+                                {spendingByCategory.length > 0 ? (
+                                    <>
+                                        {spendingByCategory.map((category, index) => {
+                                            const radius = 80;
+                                            const circumference = 2 * Math.PI * radius;
+                                            const percent = category.percent / 100;
 
-                                {/* DRINKS – 25% */}
-                                <motion.circle
-                                    cx="100"
-                                    cy="100"
-                                    r="80"
-                                    fill="transparent"
-                                    stroke="#059669"
-                                    strokeWidth="80"
-                                    initial={{ strokeDasharray: `0 ${2 * Math.PI * 80}`, strokeDashoffset: 0 }}
-                                    animate={{
-                                        strokeDasharray: `${2 * Math.PI * 80 * 0.25} ${2 * Math.PI * 80}`,
-                                        strokeDashoffset: -(2 * Math.PI * 80 * 0.45)
-                                    }}
-                                    transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
-                                />
+                                            // Calculate offset based on previous segments
+                                            const previousPercents = spendingByCategory
+                                                .slice(0, index)
+                                                .reduce((sum, cat) => sum + (cat.percent / 100), 0);
+                                            const offset = -(circumference * previousPercents);
 
-                                {/* FOOD – 30% */}
-                                <motion.circle
-                                    cx="100"
-                                    cy="100"
-                                    r="80"
-                                    fill="transparent"
-                                    stroke="#10B981"
-                                    strokeWidth="80"
-                                    initial={{ strokeDasharray: `0 ${2 * Math.PI * 80}`, strokeDashoffset: 0 }}
-                                    animate={{
-                                        strokeDasharray: `${2 * Math.PI * 80 * 0.30} ${2 * Math.PI * 80}`,
-                                        strokeDashoffset: -(2 * Math.PI * 80 * (0.45 + 0.25))
-                                    }}
-                                    transition={{ duration: 1.2, ease: "easeOut", delay: 0.4 }}
-                                />
-
-                                {/* Center circle */}
-                                <circle cx="100" cy="100" r="40" fill="#FFFFFF" />
+                                            return (
+                                                <motion.circle
+                                                    key={category.name}
+                                                    cx="100"
+                                                    cy="100"
+                                                    r={radius}
+                                                    fill="transparent"
+                                                    stroke={categoryColors[index] || '#10B981'}
+                                                    strokeWidth="80"
+                                                    initial={{ strokeDasharray: `0 ${circumference}`, strokeDashoffset: 0 }}
+                                                    animate={{
+                                                        strokeDasharray: `${circumference * percent} ${circumference}`,
+                                                        strokeDashoffset: offset
+                                                    }}
+                                                    transition={{ duration: 1.2, ease: "easeOut", delay: index * 0.2 }}
+                                                />
+                                            );
+                                        })}
+                                        {/* Center circle */}
+                                        <circle cx="100" cy="100" r="40" fill="#FFFFFF" />
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Empty state circle */}
+                                        <circle cx="100" cy="100" r="80" fill="transparent" stroke="#E5E7EB" strokeWidth="80" />
+                                        <circle cx="100" cy="100" r="40" fill="#FFFFFF" />
+                                    </>
+                                )}
                             </svg>
                         </div>
 
 
                         {/* Legend - Vertical on the right */}
                         <div className="legend">
-                            <motion.div className="legend-item" initial={{ x: 12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.12 }}>
-                                <span className="legend-color family"></span>
-                                <span className="legend-text">Family</span>
-                            </motion.div>
-                            <motion.div className="legend-item" initial={{ x: 12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.18 }}>
-                                <span className="legend-color drinks"></span>
-                                <span className="legend-text">Drinks</span>
-                            </motion.div>
-                            <motion.div className="legend-item" initial={{ x: 12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.24 }}>
-                                <span className="legend-color food"></span>
-                                <span className="legend-text">Food</span>
-                            </motion.div>
+                            {spendingByCategory.length > 0 ? (
+                                spendingByCategory.map((category, index) => (
+                                    <motion.div
+                                        key={category.name}
+                                        className="legend-item"
+                                        initial={{ x: 12, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: 0.12 + index * 0.06 }}
+                                    >
+                                        <span
+                                            className="legend-color"
+                                            style={{ backgroundColor: categoryColors[index] || '#10B981' }}
+                                        ></span>
+                                        <span className="legend-text">
+                                            {category.name} ({category.percent.toFixed(0)}%)
+                                        </span>
+                                    </motion.div>
+                                ))
+                            ) : (
+                                <motion.div className="legend-item" initial={{ x: 12, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
+                                    <span className="legend-text">No spending data</span>
+                                </motion.div>
+                            )}
                         </div>
                     </div>
 

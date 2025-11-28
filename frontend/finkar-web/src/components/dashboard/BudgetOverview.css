@@ -1,0 +1,119 @@
+.budget-overview-section {
+    margin-bottom: 24px;
+    padding: 0 4px;
+}
+
+.budget-overview-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.budget-overview-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0;
+}
+
+.budget-overview-section .manage-btn {
+    background: none;
+    border: none;
+    color: #3B82F6;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.budget-card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #F3F4F6;
+}
+
+.budget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.month-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6B7280;
+}
+
+.status-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.status-badge.good {
+    background-color: #ECFDF5;
+    color: #059669;
+}
+
+.status-badge.over {
+    background-color: #FEF2F2;
+    color: #DC2626;
+}
+
+.budget-values {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.spent-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+}
+
+.total-value {
+    font-size: 14px;
+    color: #6B7280;
+}
+
+.budget-progress-bg {
+    height: 8px;
+    background-color: #F3F4F6;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.budget-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+}
+
+.budget-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+.empty-budget {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px dashed #E5E7EB;
+}
+
+.empty-budget p {
+    color: #9CA3AF;
+    font-size: 14px;
+    margin: 0;
+}

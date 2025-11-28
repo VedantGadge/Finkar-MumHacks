@@ -1,5 +1,5 @@
 // Budget API Service
-const API_BASE_URL = "https://lamaq-financial-guardian-backend.hf.space/api";
+const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
 
 /**
  * Fetch budgets for a user

@@ -1,0 +1,72 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import './BudgetOverview.css';
+
+const BudgetOverview = ({ budget, onManageBudget }) => {
+    if (!budget || !budget.total_budget) {
+        return (
+            <motion.section
+                className="budget-overview-section"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.25 }}
+            >
+                <div className="section-header">
+                    <h2>Monthly Budget</h2>
+                    <button className="manage-btn" onClick={onManageBudget}>Set Budget</button>
+                </div>
+                <div className="empty-budget">
+                    <p>No budget set for this month.</p>
+                </div>
+            </motion.section>
+        );
+    }
+
+    const percentUsed = Math.min((budget.total_spent / budget.total_budget) * 100, 100);
+    const isOver = budget.overall_status === 'over';
+
+    return (
+        <motion.section
+            className="budget-overview-section"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+        >
+            <div className="section-header">
+                <h2>Monthly Budget</h2>
+                <button className="manage-btn" onClick={onManageBudget}>Manage</button>
+            </div>
+
+            <div className="budget-card">
+                <div className="budget-header">
+                    <span className="month-label">{budget.month}</span>
+                    <span className={`status-badge ${isOver ? 'over' : 'good'}`}>
+                        {isOver ? 'Over Budget' : 'On Track'}
+                    </span>
+                </div>
+
+                <div className="budget-values">
+                    <span className="spent-value">₹{budget.total_spent.toLocaleString()}</span>
+                    <span className="total-value">of ₹{budget.total_budget.toLocaleString()}</span>
+                </div>
+
+                <div className="budget-progress-bg">
+                    <motion.div
+                        className="budget-progress-fill"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${percentUsed}%` }}
+                        transition={{ duration: 1, delay: 0.4 }}
+                        style={{ backgroundColor: isOver ? '#EF4444' : '#10B981' }}
+                    />
+                </div>
+
+                <div className="budget-footer">
+                    <span>{percentUsed.toFixed(0)}% used</span>
+                    <span>₹{(budget.total_budget - budget.total_spent).toLocaleString()} left</span>
+                </div>
+            </div>
+        </motion.section>
+    );
+};
+
+export default BudgetOverview;

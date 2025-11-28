@@ -251,3 +251,65 @@ export const fetchNifty50Historical = async (period = "1mo") => {
     throw error;
   }
 };
+
+/**
+ * Fetches Sensex historical data
+ * @param {string} period - Period for data (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)
+ * @returns {Promise<Object>} Sensex historical data
+ */
+export const fetchSensexHistorical = async (period = "1mo") => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/v1/indices/sensex/historical?period=${period}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch Sensex historical data: ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching Sensex historical data:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches Bank Nifty historical data
+ * @param {string} period - Period for data (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)
+ * @returns {Promise<Object>} Bank Nifty historical data
+ */
+export const fetchBankNiftyHistorical = async (period = "1mo") => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/v1/indices/banknifty/historical?period=${period}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch Bank Nifty historical data: ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching Bank Nifty historical data:", error);
+    throw error;
+  }
+};

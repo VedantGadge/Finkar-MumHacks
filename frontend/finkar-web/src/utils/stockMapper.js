@@ -59,25 +59,47 @@ const extractLessonsFromMarkdown = (markdown) => {
 
   const lessons = [];
 
-  // Find the start of the section
-  const sectionStart = markdown.indexOf("### 📚 Key Takeaways for Investors");
+  // Find the Practical Trading Wisdom section
+  const sectionStart = markdown.indexOf("### 💡 Practical Trading Wisdom");
   if (sectionStart === -1) return [];
 
-  // Get the content after the header
+  // Find the end of the section (next ### or ---)
   const sectionContent = markdown.slice(sectionStart);
+  const sectionEnd = sectionContent.indexOf("\n---", 10);
+  const relevantContent = sectionEnd !== -1 
+    ? sectionContent.slice(0, sectionEnd) 
+    : sectionContent;
 
-  // Regex to match lessons
-  // Matches: 1. **Title**: Description
-  const lessonRegex = /\d+\.\s*\*\*(.*?)\*\*:\s*(.*?)(?=\n\d+\.|\n\n|$)/gs;
+  // Regex to match lessons in format:
+  // #### Lesson N: Title
+  // Content...
+  // **Financial Literacy Tip:** Tip content
+  const lessonRegex = /#### Lesson \d+: (.*?)\n([\s\S]*?)(?=#### Lesson \d+:|$)/g;
 
   let match;
-  while ((match = lessonRegex.exec(sectionContent)) !== null) {
+  while ((match = lessonRegex.exec(relevantContent)) !== null) {
+    const title = match[1].trim();
+    const content = match[2].trim();
+    
+    // Extract the description (everything before the Financial Literacy Tip)
+    const tipStart = content.indexOf("**Financial Literacy Tip:**");
+    let description = "";
+    let tip = "";
+    
+    if (tipStart !== -1) {
+      description = content.slice(0, tipStart).trim();
+      tip = content.slice(tipStart + "**Financial Literacy Tip:**".length).trim();
+    } else {
+      description = content;
+    }
+
     lessons.push({
-      title: match[1].trim(),
-      description: match[2].trim(),
-      tip: null, // No specific tip in this format
+      title: title,
+      description: description,
+      tip: tip || "Stay informed and make data-driven decisions.",
     });
   }
 
   return lessons;
 };
+

@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { fetchTickers, generateCaseStudy, getTickerDisplayName, fetchMarketIndices, fetchSectorPerformance, fetchMultipleStockData, fetchNifty50Historical } from '../utils/stockApi';
+import { fetchTickers, generateCaseStudy, getTickerDisplayName, fetchMarketIndices, fetchSectorPerformance, fetchMultipleStockData, fetchNifty50Historical, fetchSensexHistorical, fetchBankNiftyHistorical } from '../utils/stockApi';
 import { mapApiToStockData } from '../utils/stockMapper';
 import useBackButton from '../hooks/useBackButton';
-import Nifty50Chart from '../components/Nifty50Chart';
+import IndexChart from '../components/IndexChart';
 import './Stocks.css';
 
 const Stocks = () => {
@@ -25,6 +25,8 @@ const Stocks = () => {
     const [loadingStates, setLoadingStates] = useState({});
     const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
     const [nifty50Data, setNifty50Data] = useState(null);
+    const [sensexData, setSensexData] = useState(null);
+    const [bankNiftyData, setBankNiftyData] = useState(null);
     const carouselRef = useRef(null);
     const interactionTimeoutRef = useRef(null);
     const isInteractingRef = useRef(false);
@@ -113,16 +115,20 @@ const Stocks = () => {
                 setIsLoadingTickers(true);
 
                 // Fetch static data in parallel
-                const [indices, sectors, tickersData, nifty50] = await Promise.all([
+                const [indices, sectors, tickersData, nifty50, sensex, bankNifty] = await Promise.all([
                     fetchMarketIndices(),
                     fetchSectorPerformance(),
                     fetchTickers(),
-                    fetchNifty50Historical('1mo')
+                    fetchNifty50Historical('1mo'),
+                    fetchSensexHistorical('1mo'),
+                    fetchBankNiftyHistorical('1mo')
                 ]);
 
                 setMarketIndices(indices);
                 setSectorPerformance(sectors);
                 setNifty50Data(nifty50);
+                setSensexData(sensex);
+                setBankNiftyData(bankNifty);
 
                 const tickers = tickersData.tickers || [];
                 setAvailableTickers(tickers);
@@ -379,7 +385,7 @@ const Stocks = () => {
                                 </div>
                                 <div className="metric">
                                     <span>Confidence:</span>
-                                    <strong>{selectedStock.sentiment.confidence}</strong>
+                                    <strong>{selectedStock.sentiment.confidence.charAt(0).toUpperCase() + selectedStock.sentiment.confidence.slice(1)}</strong>
                                 </div>
                                 <div className="metric">
                                     <span>Articles Analyzed:</span>
@@ -387,20 +393,6 @@ const Stocks = () => {
                                 </div>
                             </div>
 
-                            <div className="sentiment-distribution">
-                                <div className="distribution-item">
-                                    <span className="emoji">🟢</span>
-                                    <span>Positive: {selectedStock.sentiment.positive}</span>
-                                </div>
-                                <div className="distribution-item">
-                                    <span className="emoji">🔴</span>
-                                    <span>Negative: {selectedStock.sentiment.negative}</span>
-                                </div>
-                                <div className="distribution-item">
-                                    <span className="emoji">⚪</span>
-                                    <span>Neutral: {selectedStock.sentiment.neutral}</span>
-                                </div>
-                            </div>
                         </div>
                     </section>
 
@@ -429,7 +421,7 @@ const Stocks = () => {
 
                     {selectedStock.lessons && selectedStock.lessons.length > 0 && (
                         <section className="detail-section-seamless learning-section">
-                            <h3>💡 Practical Trading Wisdom</h3>
+                            <h3>Practical Trading Wisdom</h3>
 
                             <div className="lesson-carousel">
                                 <AnimatePresence mode="wait">
@@ -448,10 +440,12 @@ const Stocks = () => {
                                         <p className="lesson-description">
                                             {selectedStock.lessons[currentLesson].description}
                                         </p>
-                                        <div className="lesson-tip">
-                                            <strong>💡 Financial Literacy Tip:</strong>
-                                            <p>{selectedStock.lessons[currentLesson].tip}</p>
-                                        </div>
+                                        {selectedStock.lessons[currentLesson].tip && (
+                                            <div className="lesson-tip">
+                                                <strong>Financial Literacy Tip:</strong>
+                                                <p>{selectedStock.lessons[currentLesson].tip}</p>
+                                            </div>
+                                        )}
                                     </motion.div>
                                 </AnimatePresence>
 
@@ -659,51 +653,10 @@ const Stocks = () => {
                 </div>
             </section>
 
-            {nifty50Data && nifty50Data.data && <Nifty50Chart data={nifty50Data} />}
+            {nifty50Data && nifty50Data.data && <IndexChart data={nifty50Data} title="Nifty 50" gradientId="niftyGradient" color="#047857" />}
+            {sensexData && sensexData.data && <IndexChart data={sensexData} title="Sensex" gradientId="sensexGradient" color="#2563eb" />}
+            {bankNiftyData && bankNiftyData.data && <IndexChart data={bankNiftyData} title="Bank Nifty" gradientId="bankNiftyGradient" color="#7c3aed" />}
 
-            <section className="market-pulse-section">
-                <h3>Market Pulse</h3>
-                <div className="indices-grid">
-                    {marketIndices.map((index, i) => {
-                        const chartData = index.trendData.map((value) => ({ value }));
-
-                        return (
-                            <motion.div
-                                key={index.name}
-                                className="index-card"
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.25 + i * 0.05 }}
-                            >
-                                <div className="index-header">
-                                    <span className="index-name">{index.name}</span>
-                                    <span className={`index-change ${index.change >= 0 ? 'positive' : 'negative'}`}>
-                                        {index.change >= 0 ? '+' : ''}{index.changePercent}%
-                                    </span>
-                                </div>
-                                <div className="index-value">
-                                    {index.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </div>
-                                <div className="index-sparkline-chart">
-                                    <ResponsiveContainer width="100%" height={32}>
-                                        <LineChart data={chartData}>
-                                            <Line
-                                                type="monotone"
-                                                dataKey="value"
-                                                stroke={index.change >= 0 ? '#047857' : '#DC2626'}
-                                                strokeWidth={2}
-                                                dot={false}
-                                                animationDuration={1000}
-                                                animationBegin={300 + i * 100}
-                                            />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            </section>
 
             <section className="sector-heatmap-section">
                 <h3>Sector Performance Heatmap</h3>

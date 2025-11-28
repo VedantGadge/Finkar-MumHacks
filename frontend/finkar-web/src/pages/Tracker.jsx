@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createBudget, updateBudget, deleteBudget } from '../services/budgetService';
 import { fetchLiabilities } from '../services/liabilitiesService';
 import { fetchGoals, createGoal } from '../services/goalsService';
+import { createManualTransaction, fetchTransactions } from '../services/transactionsService';
 import './Tracker.css';
 import TransactionsCard from '../components/tracker/TransactionsCard';
 import BudgetCard from '../components/tracker/BudgetCard';
@@ -14,13 +15,12 @@ import CategoriesCard from '../components/tracker/CategoriesCard';
 import CustomDatePicker from '../components/common/CustomDatePicker';
 
 function Tracker() {
-    // 1. Transactions Data
-    // 1. Transactions Data
-    const [transactions, setTransactions] = useLocalStorage('tracker_transactions', [
-        { id: 1, date: '2023-11-24', desc: 'Grocery Shopping', type: 'expense', amount: '2500', category: 'Food' },
-        { id: 2, date: '2023-11-23', desc: 'Uber to office', type: 'expense', amount: '450', category: 'Transport' },
-        { id: 3, date: '2023-11-20', desc: 'Freelance Payment', type: 'income', amount: '15000', category: 'Salary' },
-    ]);
+    // 1. Transactions Data - fetched from API
+    const [transactions, setTransactions] = useState([]);
+
+    // Loading and error states for transactions
+    const [transactionsLoading, setTransactionsLoading] = useState(true);
+    const [transactionsError, setTransactionsError] = useState(null);
 
     // 2. Budget Data
     // 2. Budget Data
@@ -71,8 +71,8 @@ function Tracker() {
                 setLiabilitiesLoading(true);
                 const data = await fetchLiabilities(1); // user_id hardcoded as 1
 
-                // Map loans data from API to component format
-                const mappedLoans = data.loans.map(loan => ({
+                // Map loans data from API to component format (with defensive check)
+                const mappedLoans = (data.loans || []).map(loan => ({
                     id: loan.id,
                     name: loan.name,
                     emi: loan.emi_amount,
@@ -81,8 +81,8 @@ function Tracker() {
                     remaining: null // API doesn't provide this, can be calculated if needed
                 }));
 
-                // Map credit cards data from API to component format
-                const mappedCreditCards = data.credit_cards.map(card => ({
+                // Map credit cards data from API to component format (with defensive check)
+                const mappedCreditCards = (data.credit_cards || []).map(card => ({
                     id: card.id,
                     name: card.card_name,
                     outstanding: card.outstanding_amount,
@@ -112,8 +112,11 @@ function Tracker() {
                 setGoalsLoading(true);
                 const data = await fetchGoals(1); // user_id hardcoded as 1
 
+                // Handle both array and object responses
+                const goalsArray = Array.isArray(data) ? data : (data.goals || []);
+
                 // Map goals data from API to component format
-                const mappedGoals = data.map(goal => ({
+                const mappedGoals = goalsArray.map(goal => ({
                     id: goal.id,
                     name: goal.name,
                     target: goal.target,
@@ -133,6 +136,37 @@ function Tracker() {
         };
 
         loadGoals();
+    }, []);
+
+    // Fetch transactions data on component mount
+    useEffect(() => {
+        const loadTransactions = async () => {
+            try {
+                setTransactionsLoading(true);
+                const data = await fetchTransactions(1); // user_id hardcoded as 1
+
+                // Map transactions data from API to component format (with defensive check)
+                const transactionsArray = data.transactions || [];
+                const mappedTransactions = transactionsArray.map(txn => ({
+                    id: txn.id,
+                    date: txn.transaction_date,
+                    desc: txn.narration,
+                    type: txn.type === 'CREDIT' ? 'income' : 'expense',
+                    amount: txn.amount.toString(),
+                    category: txn.category
+                }));
+
+                setTransactions(mappedTransactions);
+                setTransactionsError(null);
+            } catch (error) {
+                console.error('Failed to load transactions:', error);
+                setTransactionsError(error.message);
+            } finally {
+                setTransactionsLoading(false);
+            }
+        };
+
+        loadTransactions();
     }, []);
 
     const cards = [
@@ -513,9 +547,37 @@ function Tracker() {
                                         <button className="save-btn-modal" onClick={() => {
                                             if (expandedCard === 'transactions') {
                                                 if (selectedItem.id) {
+                                                    // Editing existing transaction - update local state
                                                     setTransactions(transactions.map(t => t.id === selectedItem.id ? selectedItem : t));
                                                 } else {
-                                                    setTransactions([...transactions, { ...selectedItem, id: Date.now() }]);
+                                                    // Creating new transaction - call API
+                                                    const handleCreateTransaction = async () => {
+                                                        try {
+                                                            await createManualTransaction(
+                                                                1, // user_id hardcoded as 1
+                                                                parseFloat(selectedItem.amount),
+                                                                selectedItem.category,
+                                                                selectedItem.desc || '', // narration
+                                                                selectedItem.date
+                                                            );
+
+                                                            // Refresh transactions list from API
+                                                            const data = await fetchTransactions(1);
+                                                            const mappedTransactions = data.transactions.map(txn => ({
+                                                                id: txn.id,
+                                                                date: txn.transaction_date,
+                                                                desc: txn.narration,
+                                                                type: txn.type === 'CREDIT' ? 'income' : 'expense',
+                                                                amount: txn.amount.toString(),
+                                                                category: txn.category
+                                                            }));
+                                                            setTransactions(mappedTransactions);
+                                                            alert('Transaction saved successfully!');
+                                                        } catch (err) {
+                                                            alert('Failed to save transaction: ' + err.message);
+                                                        }
+                                                    };
+                                                    handleCreateTransaction();
                                                 }
                                             } else if (expandedCard === 'budget') {
                                                 // Check if editing existing budget (has limit field from API) or creating new
