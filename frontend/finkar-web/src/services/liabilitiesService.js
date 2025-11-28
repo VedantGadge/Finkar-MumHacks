@@ -1,5 +1,6 @@
+import { API_URL } from "../config";
 // Liabilities API Service
-const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
+// const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
 
 /**
  * Fetch liabilities (loans and credit cards) for a user
@@ -8,7 +9,7 @@ const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
  */
 export const fetchLiabilities = async (userId) => {
   try {
-    const url = new URL(`${API_BASE_URL}/liabilities`);
+    const url = new URL(`${API_URL}/liabilities`);
     url.searchParams.append("user_id", userId);
 
     const response = await fetch(url);

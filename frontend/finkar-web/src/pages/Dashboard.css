@@ -12,11 +12,14 @@
 /* Header */
 .dashboard-header {
     margin-bottom: 30px;
-    text-align: center;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
 }
 
 .header-content {
-    width: 100%;
+    flex: 1;
+    text-align: left;
 }
 
 .header-content h2 {
@@ -39,6 +42,41 @@
     font-size: 16px;
     color: #374151;
     font-weight: 600;
+}
+
+/* Profile Button */
+.profile-button {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.profile-button:hover {
+    border-color: #047857;
+    background: #ECFDF5;
+}
+
+.profile-button:active {
+    transform: scale(0.95);
+}
+
+.profile-icon {
+    width: 18px;
+    height: 18px;
+    color: #374151;
+    transition: color 0.2s ease;
+}
+
+.profile-button:hover .profile-icon {
+    color: #047857;
 }
 
 /* Spendings card + chart/legend layout */

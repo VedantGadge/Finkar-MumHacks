@@ -8,6 +8,7 @@ import Tracker from './Tracker';
 import Chatbot from './Chatbot';
 import Learning from './Learning';
 import Stocks from './Stocks';
+import Profile from './Profile';
 import { fetchTransactions } from '../services/transactionsService';
 import { fetchGoals } from '../services/goalsService';
 import { fetchBudgets } from '../services/budgetService';
@@ -19,7 +20,7 @@ import RecentActivity from '../components/dashboard/RecentActivity';
 import GoalsOverview from '../components/dashboard/GoalsOverview';
 import BudgetOverview from '../components/dashboard/BudgetOverview';
 
-function Dashboard() {
+function Dashboard({ onLogout }) {
     const [checklistItems, setChecklistItems] = useState([
         { id: 1, text: 'Save 20000 for vedant debt', completed: false },
         { id: 2, text: 'EMI payment 20th Nov', completed: false },
@@ -235,6 +236,18 @@ function Dashboard() {
         [activeTab]
     );
 
+    // Show profile page
+    const [showProfile, setShowProfile] = useState(false);
+
+    if (showProfile) {
+        return (
+            <Profile 
+                onLogout={onLogout} 
+                onBack={() => setShowProfile(false)} 
+            />
+        );
+    }
+
     const renderHome = () => (
         <>
             {/* Header */}
@@ -243,6 +256,20 @@ function Dashboard() {
                     <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>Welcome Back</motion.h2>
                     <motion.p className="header-name" initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45, delay: 0.06 }}>Welcome, Vedant</motion.p>
                 </div>
+                <motion.button 
+                    className="profile-button"
+                    onClick={() => setShowProfile(true)}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    aria-label="Profile"
+                >
+                    <svg className="profile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M4 21C4 17.134 7.58172 14 12 14C16.4183 14 20 17.134 20 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                </motion.button>
             </div>
 
             {/* Financial Health Card */}
