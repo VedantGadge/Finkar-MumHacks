@@ -1,0 +1,75 @@
+.obligations-section {
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.obligations-section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #1F2937;
+}
+
+.obligations-empty {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: #6B7280;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.obligations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.obligation-item {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.obligation-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.obligation-type {
+    font-size: 12px;
+    color: #6B7280;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.obligation-name {
+    font-size: 16px;
+    color: #1F2937;
+    font-weight: 600;
+}
+
+.obligation-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.obligation-amount {
+    font-size: 18px;
+    font-weight: bold;
+    color: #EF4444;
+}
+
+.obligation-due {
+    font-size: 12px;
+    color: #6B7280;
+}

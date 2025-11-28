@@ -1,0 +1,222 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.loading-animation {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-logo {
+  filter: drop-shadow(0 0 20px rgba(34, 139, 34, 0.4));
+}
+
+/* Pulse Animation - Gentle scaling pulse */
+.loading-pulse .loading-logo {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 20px rgba(34, 139, 34, 0.4));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 30px rgba(34, 139, 34, 0.6));
+  }
+}
+
+/* Spin Animation - Smooth rotation */
+.loading-spin .loading-logo {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Breathe Animation - Opacity and scale breathing effect */
+.loading-breathe .loading-logo {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(0.95);
+    opacity: 0.7;
+    filter: drop-shadow(0 0 15px rgba(34, 139, 34, 0.3));
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+    filter: drop-shadow(0 0 35px rgba(34, 139, 34, 0.7));
+  }
+}
+
+/* Bars Animation - Animated bars that mimic the logo's top bars */
+.loading-bars {
+  position: relative;
+}
+
+.loading-bars::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 30px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 20%,
+    rgba(239, 239, 239, 0.3) 20%,
+    rgba(239, 239, 239, 0.3) 30%,
+    transparent 30%,
+    transparent 40%,
+    rgba(239, 239, 239, 0.5) 40%,
+    rgba(239, 239, 239, 0.5) 50%,
+    transparent 50%,
+    transparent 60%,
+    rgba(239, 239, 239, 0.7) 60%,
+    rgba(239, 239, 239, 0.7) 70%,
+    transparent 70%,
+    transparent 80%,
+    rgba(239, 239, 239, 0.9) 80%,
+    rgba(239, 239, 239, 0.9) 90%,
+    transparent 90%
+  );
+  animation: bars-wave 1.5s ease-in-out infinite;
+}
+
+.loading-bars .loading-logo {
+  animation: gentle-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes bars-wave {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translateX(-50%) scaleY(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scaleY(1.2);
+  }
+}
+
+@keyframes gentle-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Fill Animation - Rupee symbol fills up from bottom to top */
+.loading-fill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rupee-fill-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rupee-fill-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.rupee-base-path {
+  position: relative;
+}
+
+.rupee-fill-path {
+  position: relative;
+}
+
+/* Animate the clip rect to reveal from bottom to top */
+#fillClip rect {
+  animation: fill-up-rupee 2s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+@keyframes fill-up-rupee {
+  0% {
+    transform: translateY(147px) scaleY(0);
+  }
+  50% {
+    transform: translateY(0) scaleY(1);
+  }
+  100% {
+    transform: translateY(147px) scaleY(0);
+  }
+}
+
+/* Loading Message */
+.loading-message {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #efefef;
+  text-align: center;
+  margin: 0;
+  animation: fade-in-out 2s ease-in-out infinite;
+}
+
+@keyframes fade-in-out {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Fullscreen overlay variant */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(26, 26, 26, 0.95);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Inline variant for smaller loading states */
+.loading-inline {
+  padding: 1rem;
+}
+
+.loading-inline .loading-logo {
+  width: 40px;
+  height: 40px;
+}
+
+.loading-inline .loading-message {
+  font-size: 0.875rem;
+}
