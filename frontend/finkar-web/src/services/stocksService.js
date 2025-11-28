@@ -1,6 +1,5 @@
-import { API_URL } from "../config";
 // Stocks API Service
-// const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Fetch available stock tickers
@@ -8,7 +7,7 @@ import { API_URL } from "../config";
  */
 export const fetchTickers = async () => {
   try {
-    const response = await fetch(`${API_URL}/tickers`);
+    const response = await fetch(`${API_BASE_URL}/tickers`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch tickers");
@@ -28,7 +27,7 @@ export const fetchTickers = async () => {
  */
 export const fetchStockData = async (ticker) => {
   try {
-    const response = await fetch(`${API_URL}/v1/stocks/${ticker}/data`);
+    const response = await fetch(`${API_BASE_URL}/v1/stocks/${ticker}/data`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch stock data for ${ticker}`);
@@ -64,7 +63,7 @@ export const generateCaseStudy = async (
     };
     console.log("Frontend Service sending to Backend:", JSON.stringify(requestBody, null, 2));
 
-    const response = await fetch(`${API_URL}/case-study`, {
+    const response = await fetch(`${API_BASE_URL}/case-study`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -97,7 +96,7 @@ export const generateBatchCaseStudy = async (
   useGroq = false
 ) => {
   try {
-    const response = await fetch(`${API_URL}/case-study/batch`, {
+    const response = await fetch(`${API_BASE_URL}/case-study/batch`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -1,6 +1,5 @@
-import { API_URL } from "../config";
 // Chat API Service
-// const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
+const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
 
 /**
  * Send a message to the chat API
@@ -11,7 +10,7 @@ import { API_URL } from "../config";
  */
 export const sendMessage = async (sessionId, phoneNumber, message) => {
   try {
-    const response = await fetch(`${API_URL}/chat/message`, {
+    const response = await fetch(`${API_BASE_URL}/chat/message`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

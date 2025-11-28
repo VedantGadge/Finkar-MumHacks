@@ -2,9 +2,8 @@
  * API service for stock-related endpoints
  */
 
-import { API_URL } from "../config";
 // Use local backend proxy to avoid CORS issues
-// const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Fetches the list of available stock tickers
@@ -12,7 +11,7 @@ import { API_URL } from "../config";
  */
 export const fetchTickers = async () => {
   try {
-    const response = await fetch(`${API_URL}/tickers`, {
+    const response = await fetch(`${API_BASE_URL}/tickers`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -55,7 +54,7 @@ export const generateCaseStudy = async (
 
     console.log("Frontend sending to Backend:", JSON.stringify(requestBody, null, 2));
 
-    const response = await fetch(`${API_URL}/case-study`, {
+    const response = await fetch(`${API_BASE_URL}/case-study`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -95,7 +94,7 @@ export const batchGenerateCaseStudies = async (
       use_groq: true,
     };
 
-    const response = await fetch(`${API_URL}/case-study/batch`, {
+    const response = await fetch(`${API_BASE_URL}/case-study/batch`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -133,7 +132,7 @@ export const getTickerDisplayName = (ticker) => {
  */
 export const fetchMarketIndices = async () => {
   try {
-    const response = await fetch(`${API_URL}/market-indices`);
+    const response = await fetch(`${API_BASE_URL}/market-indices`);
     if (!response.ok) {
       throw new Error("Failed to fetch market indices");
     }
@@ -150,7 +149,7 @@ export const fetchMarketIndices = async () => {
  */
 export const fetchSectorPerformance = async () => {
   try {
-    const response = await fetch(`${API_URL}/sector-performance`);
+    const response = await fetch(`${API_BASE_URL}/sector-performance`);
     if (!response.ok) {
       throw new Error("Failed to fetch sector performance");
     }
@@ -168,7 +167,7 @@ export const fetchSectorPerformance = async () => {
  */
 export const fetchStockData = async (ticker) => {
   try {
-    const response = await fetch(`${API_URL}/v1/stocks/${ticker}/data`, {
+    const response = await fetch(`${API_BASE_URL}/v1/stocks/${ticker}/data`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -230,7 +229,7 @@ export const fetchMultipleStockData = async (tickers) => {
 export const fetchNifty50Historical = async (period = "1mo") => {
   try {
     const response = await fetch(
-      `${API_URL}/v1/indices/nifty50/historical?period=${period}`,
+      `${API_BASE_URL}/v1/indices/nifty50/historical?period=${period}`,
       {
         method: "GET",
         headers: {
@@ -261,7 +260,7 @@ export const fetchNifty50Historical = async (period = "1mo") => {
 export const fetchSensexHistorical = async (period = "1mo") => {
   try {
     const response = await fetch(
-      `${API_URL}/v1/indices/sensex/historical?period=${period}`,
+      `${API_BASE_URL}/v1/indices/sensex/historical?period=${period}`,
       {
         method: "GET",
         headers: {
@@ -292,7 +291,7 @@ export const fetchSensexHistorical = async (period = "1mo") => {
 export const fetchBankNiftyHistorical = async (period = "1mo") => {
   try {
     const response = await fetch(
-      `${API_URL}/v1/indices/banknifty/historical?period=${period}`,
+      `${API_BASE_URL}/v1/indices/banknifty/historical?period=${period}`,
       {
         method: "GET",
         headers: {

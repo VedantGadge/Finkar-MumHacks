@@ -1,6 +1,5 @@
-import { API_URL } from "../config";
 // Market API Service
-// const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
 /**
  * Fetch market indices data
@@ -8,7 +7,7 @@ import { API_URL } from "../config";
  */
 export const fetchMarketIndices = async () => {
   try {
-    const response = await fetch(`${API_URL}/market-indices`);
+    const response = await fetch(`${API_BASE_URL}/market-indices`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch market indices");
@@ -27,7 +26,7 @@ export const fetchMarketIndices = async () => {
  */
 export const fetchSectorPerformance = async () => {
   try {
-    const response = await fetch(`${API_URL}/sector-performance`);
+    const response = await fetch(`${API_BASE_URL}/sector-performance`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch sector performance");

@@ -241,9 +241,9 @@ function Dashboard({ onLogout }) {
 
     if (showProfile) {
         return (
-            <Profile 
-                onLogout={onLogout} 
-                onBack={() => setShowProfile(false)} 
+            <Profile
+                onLogout={onLogout}
+                onBack={() => setShowProfile(false)}
             />
         );
     }
@@ -256,7 +256,7 @@ function Dashboard({ onLogout }) {
                     <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>Welcome Back</motion.h2>
                     <motion.p className="header-name" initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45, delay: 0.06 }}>Welcome, Vedant</motion.p>
                 </div>
-                <motion.button 
+                <motion.button
                     className="profile-button"
                     onClick={() => setShowProfile(true)}
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -266,8 +266,8 @@ function Dashboard({ onLogout }) {
                     aria-label="Profile"
                 >
                     <svg className="profile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M4 21C4 17.134 7.58172 14 12 14C16.4183 14 20 17.134 20 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <path d="M4 21C4 17.134 7.58172 14 12 14C16.4183 14 20 17.134 20 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                 </motion.button>
             </div>

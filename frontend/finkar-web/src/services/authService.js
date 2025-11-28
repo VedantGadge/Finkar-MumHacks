@@ -1,5 +1,4 @@
-import { API_URL } from "../config";
-// const API_BASE_URL = 'https://lamaq-finkar-backend-teamayu.hf.space';
+const API_BASE_URL = 'https://lamaq-finkar-backend-teamayu.hf.space';
 
 /**
  * Generate OTP for the given mobile number
@@ -7,7 +6,7 @@ import { API_URL } from "../config";
  * @returns {Promise<object>} - API response
  */
 export const generateOTP = async (mobileNumber) => {
-    const response = await fetch(`${API_URL}/simulation/otp/generate`, {
+    const response = await fetch(`${API_BASE_URL}/api/simulation/otp/generate`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -29,7 +28,7 @@ export const generateOTP = async (mobileNumber) => {
  * @returns {Promise<object>} - API response
  */
 export const verifyOTP = async (mobileNumber, otp) => {
-    const response = await fetch(`${API_URL}/simulation/otp/verify`, {
+    const response = await fetch(`${API_BASE_URL}/api/simulation/otp/verify`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -49,7 +48,7 @@ export const verifyOTP = async (mobileNumber, otp) => {
  * @returns {Promise<object>} - API response with list of FIPs
  */
 export const fetchFIPs = async () => {
-    const response = await fetch(`${API_URL}/simulation/fips`, {
+    const response = await fetch(`${API_BASE_URL}/api/simulation/fips`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -70,7 +69,7 @@ export const fetchFIPs = async () => {
  * @returns {Promise<object>} - API response
  */
 export const approveConsent = async (mobileNumber, selectedBanks) => {
-    const response = await fetch(`${API_URL}/simulation/consent/approve`, {
+    const response = await fetch(`${API_BASE_URL}/api/simulation/consent/approve`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
