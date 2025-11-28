@@ -1,5 +1,12 @@
 .App {
   text-align: center;
+  min-height: 100%;
+}
+
+/* Ensure root/fullscreen layout for mobile */
+html, body, #root {
+  height: 100%;
+  margin: 0;
 }
 
 .App-logo {
@@ -14,18 +21,18 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #FFFFFF;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: #1F2937;
 }
 
 .App-link {
-  color: #61dafb;
+  color: #047857;
 }
 
 @keyframes App-logo-spin {
@@ -35,4 +42,26 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Buttons used by the demo app */
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.primary-btn {
+  margin-top: 18px;
+  background: #047857;
+  border: none;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Make sure the demo content still looks okay when shown after splash */
+.App-header h2 {
+  margin: 0 0 8px 0;
 }
