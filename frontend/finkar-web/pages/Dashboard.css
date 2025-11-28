@@ -1,0 +1,489 @@
+/* Dashboard Container */
+.dashboard {
+    min-height: 100vh;
+    background: #F9FAFB;
+    color: #1F2937;
+    padding: 20px 0 100px; /* horizontal padding handled by .page-container */
+    font-family: 'DM Sans';
+    position: relative;
+    overflow-y: auto;
+}
+
+/* Header */
+.dashboard-header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.header-content {
+    width: 100%;
+}
+
+.header-content h2 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #1F2937;
+    letter-spacing: -0.5px;
+}
+
+.header-content p {
+    margin: 0;
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.header-name {
+    display: block;
+    margin-top: 8px;
+    font-size: 16px;
+    color: #374151;
+    font-weight: 600;
+}
+
+/* Spendings card + chart/legend layout */
+.spendings-section {
+    margin-bottom: 30px;
+}
+
+.spendings-section h2 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.spendings-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    position: relative;
+}
+
+.chart-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 12px;
+    min-height: 180px;
+    position: relative;
+}
+
+/* center divider between chart and legend - removed for cleaner look */
+
+.chart-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+}
+
+.pie-chart {
+    width: 100%;
+    height: 100%;
+}
+
+.legend {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 8px;
+    padding-left: 24px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #1F2937;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.legend-color.family {
+    background: #047857;
+}
+
+.legend-color.drinks {
+    background: #059669;
+}
+
+.legend-color.food {
+    background: #10B981;
+}
+
+
+/* Full-width Tooltip Box */
+.savings-tooltip {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: linear-gradient(135deg, #047857 0%, #059669 100%);
+    padding: 14px 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.2);
+    gap: 12px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 0;
+    margin-top: 16px;
+}
+
+/* Angled, soft shadow under the tooltip */
+.savings-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px; /* even closer to the box */
+    height: 14px; /* thinner for a sharper edge */
+    background: rgba(4, 120, 87, 0.4); /* match tooltip color */
+    filter: blur(7px); /* crisper */
+    transform: rotate(-4deg);
+    border-radius: 999px; /* ellipse */
+    z-index: -1; /* sit behind the tooltip */
+}
+
+/* Make the text truly take full width */
+.tooltip-text {
+    flex: 1;
+    width: 100%;
+    color: white;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+/* Bulb on the right, stays inside */
+.bulb-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+
+
+.recommendation-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.recommendation-text {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.4;
+}
+
+/* Checklist Section */
+.checklist-section {
+    margin-bottom: 30px;
+}
+
+.checklist-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.checklist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.add-btn {
+    background: #047857;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(4, 120, 87, 0.2);
+}
+
+.checklist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.checklist-item {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.checklist-item:hover {
+    background: #F9FAFB;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.item-text {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+
+.item-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.check-btn,
+.delete-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.check-btn {
+    background: transparent;
+    color: #047857;
+    border: 2px solid #047857;
+}
+
+.check-btn:hover {
+    background: #059669;
+    border-color: #059669;
+    transform: scale(1.1);
+}
+
+.delete-btn {
+    background: transparent;
+    color: #EF4444;
+    border: 2px solid #EF4444;
+}
+
+.delete-btn:hover {
+    background: #f44336;
+    border-color: #f44336;
+    transform: scale(1.1);
+}
+
+.checklist-item.completed .item-text {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+/* Learning Section */
+.learning-section {
+    margin-bottom: 30px;
+}
+
+.learning-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 16px;
+}
+
+.learning-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.course-info {
+    flex: 1;
+}
+
+.course-info h3 {
+    font-size: 20px;
+    color: #1F2937;
+    margin: 0 0 12px 0;
+    font-weight: 600;
+}
+
+.continue-btn {
+    background: #047857;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.continue-btn:hover {
+    background: #065f46;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
+}
+
+.instructor-image {
+    width: 120px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.instructor-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.instructor-label {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    font-size: 11px;
+    color: white;
+    font-weight: 500;
+    line-height: 1.3;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: transparent;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 16px var(--page-h-padding) 20px;
+    z-index: 100;
+}
+
+.bottom-nav::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.55) 40%,
+            rgba(255, 255, 255, 0.8) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%);
+    mask-image: linear-gradient(to bottom, transparent, black 30%);
+    pointer-events: none;
+}
+
+/* Sliding Indicator - No CSS transition, framer-motion handles animation */
+.nav-indicator {
+    position: absolute;
+    width: calc((100% - (var(--page-h-padding) * 2)) / 5);
+    height: 44px; /* smaller, less dominant */
+    background: rgba(4,120,87,0.10); /* subtle tint */
+    border: 1px solid rgba(4,120,87,0.12);
+    border-radius: 12px;
+    z-index: 1;
+    box-shadow: 0 8px 18px rgba(4,120,87,0.06); /* softer shadow */
+    left: var(--page-h-padding);
+}
+
+.nav-item {
+    background: transparent;
+    border: none;
+    color: #9CA3AF; /* muted by default */
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px; /* tighter */
+    transition: color 0.18s, transform 0.18s;
+    flex: 1;
+    position: relative;
+    z-index: 2;
+    height: 48px; /* smaller touch area but still usable */
+}
+
+.nav-item svg,
+.nav-item .nav-icon {
+    width: 22px; /* smaller, more subtle */
+    height: 22px;
+    transition: transform 0.18s, color 0.18s;
+}
+
+.nav-item:hover svg,
+.nav-item:hover .nav-icon {
+    transform: scale(1.06); /* gentle hover */
+}
+
+.nav-item.active {
+    color: #047857; /* toned, dark green for active icons */
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .dashboard {
+        padding: 16px 12px 100px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 24px;
+    }
+
+    section h2 {
+        font-size: 20px;
+    }
+
+    .spendings-card {
+        padding: 16px;
+    }
+
+    .chart-container {
+        width: 140px;
+        height: 140px;
+    }
+}
