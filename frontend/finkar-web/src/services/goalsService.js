@@ -1,5 +1,6 @@
+import { API_URL } from "../config";
 // Goals API Service
-const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
+// const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
 
 /**
  * Fetch goals for a user
@@ -8,7 +9,7 @@ const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
  */
 export const fetchGoals = async (userId) => {
   try {
-    const url = new URL(`${API_BASE_URL}/goals`);
+    const url = new URL(`${API_URL}/goals`);
     url.searchParams.append("user_id", userId);
 
     const response = await fetch(url);
@@ -34,7 +35,7 @@ export const fetchGoals = async (userId) => {
  */
 export const createGoal = async (userId, name, targetAmount, targetDate) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/goals`, {
+    const response = await fetch(`${API_URL}/goals`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

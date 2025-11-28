@@ -1,5 +1,6 @@
+import { API_URL } from "../config";
 // Transactions API Service
-const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
+// const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
 
 /**
  * Fetch all transactions for a user
@@ -9,7 +10,7 @@ const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
  */
 export const fetchTransactions = async (userId, limit = null) => {
   try {
-    const url = new URL(`${API_BASE_URL}/transactions`);
+    const url = new URL(`${API_URL}/transactions`);
     url.searchParams.append("user_id", userId);
     if (limit) {
       url.searchParams.append("limit", limit);
@@ -39,7 +40,7 @@ export const fetchTransactions = async (userId, limit = null) => {
  */
 export const createManualTransaction = async (userId, amount, category, narration, date) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/transactions/manual`, {
+    const response = await fetch(`${API_URL}/transactions/manual`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

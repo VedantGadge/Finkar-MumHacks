@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import Splash from "./pages/Splash";
 import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
 import { FinanceProvider } from "./contexts/FinanceContext";
 
 import { IonApp, setupIonicReact } from "@ionic/react";
@@ -26,6 +27,9 @@ setupIonicReact();
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('finkar_logged_in') === 'true';
+  });
 
   // Show splash on initial load for 2.5s
   useEffect(() => {
@@ -33,9 +37,29 @@ function App() {
     return () => clearTimeout(t);
   }, []);
 
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
+
+  const renderContent = () => {
+    if (showSplash) {
+      return <Splash />;
+    }
+    
+    if (!isLoggedIn) {
+      return <Login onLoginSuccess={handleLoginSuccess} />;
+    }
+    
+    return <Dashboard onLogout={handleLogout} />;
+  };
+
   return (
     <FinanceProvider>
-      <IonApp>{showSplash ? <Splash /> : <Dashboard />}</IonApp>
+      <IonApp>{renderContent()}</IonApp>
     </FinanceProvider>
   );
 }

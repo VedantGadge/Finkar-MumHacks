@@ -1,5 +1,6 @@
+import { API_URL } from "../config";
 // Budget API Service
-const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
+// const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
 
 /**
  * Fetch budgets for a user
@@ -9,7 +10,7 @@ const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
  */
 export const fetchBudgets = async (userId, month = null) => {
   try {
-    const url = new URL(`${API_BASE_URL}/budgets`);
+    const url = new URL(`${API_URL}/budgets`);
     url.searchParams.append("user_id", userId);
     if (month) {
       url.searchParams.append("month", month);
@@ -38,7 +39,7 @@ export const fetchBudgets = async (userId, month = null) => {
  */
 export const createBudget = async (userId, category, amount, month) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/budgets`, {
+    const response = await fetch(`${API_URL}/budgets`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -72,7 +73,7 @@ export const createBudget = async (userId, category, amount, month) => {
  */
 export const updateBudget = async (userId, category, amount, month) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/budgets`, {
+    const response = await fetch(`${API_URL}/budgets`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -106,7 +107,7 @@ export const updateBudget = async (userId, category, amount, month) => {
 export const deleteBudget = async (category, userId, month = null) => {
   try {
     const url = new URL(
-      `${API_BASE_URL}/budgets/${encodeURIComponent(category)}`
+      `${API_URL}/budgets/${encodeURIComponent(category)}`
     );
     url.searchParams.append("user_id", userId);
     if (month) {
