@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { sendMessage } from '../services/chatService';
+import { translateHindiToEnglish, containsHindi } from '../services/translationService';
 import './Chatbot.css';
 
 // Hardcoded constants as per requirements
@@ -21,6 +22,7 @@ const Chatbot = () => {
     const [error, setError] = useState(null);
     const [isListening, setIsListening] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [isTranslating, setIsTranslating] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
     const isInitialMount = useRef(true);
@@ -41,21 +43,42 @@ const Chatbot = () => {
         scrollToBottom();
     }, [messages, isLoading]);
 
-    // Initialize speech recognition
+    // Initialize speech recognition with multi-language support
     useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognitionRef.current = new SpeechRecognition();
             recognitionRef.current.continuous = false;
             recognitionRef.current.interimResults = true; // Enable interim results for faster response
-            recognitionRef.current.lang = 'en-US';
+            // Use a language that supports both Hindi and English recognition
+            // Most browsers will auto-detect when using a broad language setting
+            recognitionRef.current.lang = 'hi-IN'; // Hindi setting also recognizes English
             recognitionRef.current.maxAlternatives = 1;
 
-            recognitionRef.current.onresult = (event) => {
+            recognitionRef.current.onresult = async (event) => {
                 const transcript = event.results[event.results.length - 1][0].transcript;
-                setInputValue(transcript);
+                
                 if (event.results[event.results.length - 1].isFinal) {
+                    // Auto-detect Hindi and translate to English
+                    if (containsHindi(transcript)) {
+                        setInputValue(transcript); // Show original Hindi text first
+                        setIsTranslating(true);
+                        try {
+                            const translatedText = await translateHindiToEnglish(transcript);
+                            setInputValue(translatedText);
+                        } catch (err) {
+                            console.error('Translation failed:', err);
+                            // Keep original text if translation fails
+                        } finally {
+                            setIsTranslating(false);
+                        }
+                    } else {
+                        // English text - use as-is
+                        setInputValue(transcript);
+                    }
                     setIsListening(false);
+                } else {
+                    setInputValue(transcript);
                 }
             };
 
@@ -297,19 +320,19 @@ const Chatbot = () => {
                     <textarea
                         ref={inputRef}
                         className="chat-input"
-                        placeholder={isListening ? "Listening..." : "Ask about your finances..."}
+                        placeholder={isTranslating ? "Translating..." : isListening ? "Listening... (English/Hindi)" : "Ask about your finances..."}
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyPress={handleKeyPress}
                         rows={1}
-                        disabled={isLoading || isListening}
+                        disabled={isLoading || isListening || isTranslating}
                     />
                     <button
-                        className={`mic-button ${isListening ? 'listening' : ''}`}
+                        className={`mic-button ${isListening ? 'listening' : ''} ${isTranslating ? 'translating' : ''}`}
                         onClick={toggleVoiceInput}
-                        disabled={isLoading}
+                        disabled={isLoading || isTranslating}
                         aria-label="Voice input"
-                        title={isListening ? "Stop listening" : "Start voice input"}
+                        title={isListening ? "Stop listening" : "Start voice input (English/Hindi)"}
                     >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
@@ -321,7 +344,7 @@ const Chatbot = () => {
                     <button
                         className="send-button"
                         onClick={handleSendMessage}
-                        disabled={!inputValue.trim() || isLoading}
+                        disabled={!inputValue.trim() || isLoading || isTranslating}
                         aria-label="Send message"
                     >
                         ➤
