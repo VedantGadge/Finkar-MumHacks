@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
+import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon, LaptopIcon, HomeIcon, RocketIcon, HeartIcon, LightningBoltIcon, BackpackIcon, CubeIcon, LayersIcon, PieChartIcon } from '@radix-ui/react-icons';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { fetchTickers, generateCaseStudy, getTickerDisplayName, fetchMarketIndices, fetchSectorPerformance, fetchMultipleStockData, fetchNifty50Historical, fetchSensexHistorical, fetchBankNiftyHistorical } from '../utils/stockApi';
 import { mapApiToStockData } from '../utils/stockMapper';
@@ -681,6 +681,20 @@ const Stocks = () => {
                             backgroundColor = `linear-gradient(135deg, rgba(248, 113, 113, ${topIntensity}) 0%, rgba(220, 38, 38, ${baseIntensity}) 100%)`;
                         }
 
+                        // Map sector names to icons
+                        const sectorIcons = {
+                            'IT': <LaptopIcon width={24} height={24} />,
+                            'Banking': <HomeIcon width={24} height={24} />,
+                            'Auto': <RocketIcon width={24} height={24} />,
+                            'Pharma': <HeartIcon width={24} height={24} />,
+                            'Energy': <LightningBoltIcon width={24} height={24} />,
+                            'FMCG': <BackpackIcon width={24} height={24} />,
+                            'Metals': <CubeIcon width={24} height={24} />,
+                            'Realty': <LayersIcon width={24} height={24} />
+                        };
+
+                        const icon = sectorIcons[sector.name] || <PieChartIcon width={24} height={24} />;
+
                         return (
                             <motion.div
                                 key={sector.name}
@@ -692,7 +706,18 @@ const Stocks = () => {
                                 whileHover={{ scale: 1.02, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12)' }}
                             >
                                 <div className="sector-cell-content">
-                                    <span className="sector-icon">{sector.icon}</span>
+                                    <span className="sector-icon-wrapper" style={{
+                                        color: isPositive ? '#047857' : isNeutral ? '#4B5563' : '#DC2626',
+                                        background: isPositive ? 'rgba(4, 120, 87, 0.1)' : isNeutral ? 'rgba(75, 85, 99, 0.1)' : 'rgba(220, 38, 38, 0.1)',
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginRight: '12px'
+                                    }}>
+                                        {icon}
+                                    </span>
                                     <div className="sector-info">
                                         <span className="sector-name">{sector.name}</span>
                                         <span className={`sector-performance ${isNeutral ? 'neutral' : isPositive ? 'positive' : 'negative'}`}>

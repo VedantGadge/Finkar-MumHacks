@@ -69,3 +69,26 @@ export const createManualTransaction = async (userId, amount, category, narratio
     throw error;
   }
 };
+
+/**
+ * Fetch current user balance
+ * @param {number} userId - User ID
+ * @returns {Promise<Object>} Balance object { balance: number }
+ */
+export const fetchBalance = async (userId) => {
+  try {
+    const url = new URL(`${API_BASE_URL}/balance`);
+    url.searchParams.append("user_id", userId);
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch balance");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching balance:", error);
+    throw error;
+  }
+};

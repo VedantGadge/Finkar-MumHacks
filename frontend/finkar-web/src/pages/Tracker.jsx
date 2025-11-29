@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createBudget, updateBudget, deleteBudget, getCurrentUserId } from '../services/budgetService';
 import { fetchLiabilities } from '../services/liabilitiesService';
 import { fetchGoals, createGoal, deleteGoal } from '../services/goalsService';
-import { createManualTransaction, fetchTransactions } from '../services/transactionsService';
+import { createManualTransaction, fetchTransactions, fetchBalance } from '../services/transactionsService';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Tracker.css';
 import TransactionsCard from '../components/tracker/TransactionsCard';
@@ -19,9 +19,10 @@ import '../components/common/Toast.css';
 
 function Tracker() {
     const { t } = useLanguage();
-    
+
     // 1. Transactions Data - fetched from API
     const [transactions, setTransactions] = useState([]);
+    const [apiBalance, setApiBalance] = useState(null);
 
     // Loading and error states for transactions
     const [transactionsLoading, setTransactionsLoading] = useState(true);
@@ -208,6 +209,22 @@ function Tracker() {
         loadTransactions();
     }, []);
 
+    // Fetch balance on component mount
+    useEffect(() => {
+        const loadBalance = async () => {
+            try {
+                const userId = getCurrentUserId();
+                const data = await fetchBalance(userId);
+                if (data && data.current_balance !== undefined) {
+                    setApiBalance(data.current_balance);
+                }
+            } catch (error) {
+                console.error('Failed to load balance:', error);
+            }
+        };
+        loadBalance();
+    }, []);
+
     const cards = [
         { id: 'transactions', title: t('tracker.transactions'), subtitle: 'Daily Tracker', color: '#3B82F6', type: 'transactions' },
         { id: 'budget', title: t('tracker.budget'), subtitle: 'Monthly Planner', color: '#10B981', type: 'budget' },
@@ -219,9 +236,10 @@ function Tracker() {
 
     // Memoized Stats Calculations - only recalculate when data changes
     const totalBalance = useMemo(() => {
+        if (apiBalance !== null) return parseFloat(apiBalance);
         return transactions.filter(e => e.type === 'income').reduce((sum, e) => sum + parseFloat(e.amount), 0) -
             transactions.filter(e => e.type === 'expense').reduce((sum, e) => sum + parseFloat(e.amount), 0);
-    }, [transactions]);
+    }, [transactions, apiBalance]);
 
     const monthlySpending = useMemo(() => {
         return transactions.filter(e => e.type === 'expense').reduce((sum, e) => sum + parseFloat(e.amount), 0);

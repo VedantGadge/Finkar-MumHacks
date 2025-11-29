@@ -10,7 +10,7 @@ import Chatbot from './Chatbot';
 import Learning from './Learning';
 import Stocks from './Stocks';
 import Profile from './Profile';
-import { fetchTransactions } from '../services/transactionsService';
+import { fetchTransactions, fetchBalance } from '../services/transactionsService';
 import { fetchGoals } from '../services/goalsService';
 import { fetchBudgets } from '../services/budgetService';
 import { fetchLiabilities } from '../services/liabilitiesService';
@@ -39,6 +39,7 @@ function Dashboard({ onLogout }) {
     const [budgets, setBudgets] = useState(null);
     const [loans, setLoans] = useState([]);
     const [creditCards, setCreditCards] = useState([]);
+    const [apiBalance, setApiBalance] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
     // Toast and Dialog states
@@ -60,11 +61,12 @@ function Dashboard({ onLogout }) {
                 const userId = localStorage.getItem('finkar_user_id') || 1; // Get user ID from localStorage
 
                 // Fetch all data in parallel
-                const [transactionsData, goalsData, budgetsData, liabilitiesData] = await Promise.all([
+                const [transactionsData, goalsData, budgetsData, liabilitiesData, balanceData] = await Promise.all([
                     fetchTransactions(userId).catch(() => ({ transactions: [] })),
                     fetchGoals(userId).catch(() => []),
                     fetchBudgets(userId).catch(() => ({ budgets: [] })),
-                    fetchLiabilities(userId).catch(() => ({ loans: [], credit_cards: [] }))
+                    fetchLiabilities(userId).catch(() => ({ loans: [], credit_cards: [] })),
+                    fetchBalance(userId).catch(() => ({ balance: null }))
                 ]);
 
                 // Map transactions
@@ -121,6 +123,9 @@ function Dashboard({ onLogout }) {
                 setBudgets(budgetsData);
                 setLoans(mappedLoans);
                 setCreditCards(mappedCreditCards);
+                if (balanceData && balanceData.current_balance !== undefined) {
+                    setApiBalance(balanceData.current_balance);
+                }
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
             } finally {
@@ -142,7 +147,7 @@ function Dashboard({ onLogout }) {
         [transactions]
     );
 
-    const totalBalance = totalIncome - totalExpense;
+    const totalBalance = apiBalance !== null ? parseFloat(apiBalance) : (totalIncome - totalExpense);
 
     const healthScore = useMemo(() => {
         let score = 50;

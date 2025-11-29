@@ -265,7 +265,9 @@ export const translations = {
             tradingWisdom: 'Practical Trading Wisdom',
             lesson: 'LESSON',
             of: 'OF',
-            financialTip: 'Financial Literacy Tip:'
+            financialTip: 'Financial Literacy Tip:',
+            gaining: 'Gaining',
+            declining: 'Declining'
         },
 
         // Profile
@@ -567,6 +569,7 @@ export const translations = {
             generatingCaseStudy: 'केस स्टडी बन रही है...',
             featuredCompanies: 'प्रमुख कंपनियां',
             sectorHeatmap: 'सेक्टर प्रदर्शन हीटमैप',
+            sectorPerformance: 'सेक्टर प्रदर्शन',
             backToStocks: 'स्टॉक्स पर वापस',
             performanceAnalysis: 'स्टॉक प्रदर्शन विश्लेषण',
             startingPrice: 'शुरुआती मूल्य',
@@ -584,7 +587,9 @@ export const translations = {
             tradingWisdom: 'व्यावहारिक ट्रेडिंग ज्ञान',
             lesson: 'पाठ',
             of: 'में से',
-            financialTip: 'वित्तीय साक्षरता टिप:'
+            financialTip: 'वित्तीय साक्षरता टिप:',
+            gaining: 'बढ़त',
+            declining: 'गिरावट'
         },
 
         // Profile
