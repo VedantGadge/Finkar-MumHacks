@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createBudget, updateBudget, deleteBudget, getCurrentUserId } from '../services/budgetService';
@@ -13,6 +13,8 @@ import CreditCard from '../components/tracker/CreditCard';
 import GoalsCard from '../components/tracker/GoalsCard';
 import CategoriesCard from '../components/tracker/CategoriesCard';
 import CustomDatePicker from '../components/common/CustomDatePicker';
+import Toast, { ConfirmDialog } from '../components/common/Toast';
+import '../components/common/Toast.css';
 
 function Tracker() {
     // 1. Transactions Data - fetched from API
@@ -63,6 +65,31 @@ function Tracker() {
     const [stackKey, setStackKey] = useState(0);
     // pointer start position for detecting horizontal swipes (visual drag remains vertical)
     const pointerStart = useRef({ x: 0, y: 0 });
+
+    // Toast notification state
+    const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' });
+    // Confirmation dialog state
+    const [confirmDialog, setConfirmDialog] = useState({ isVisible: false, title: '', message: '', onConfirm: null });
+
+    // Show toast notification
+    const showToast = useCallback((message, type = 'success') => {
+        setToast({ isVisible: true, message, type });
+    }, []);
+
+    // Hide toast notification
+    const hideToast = useCallback(() => {
+        setToast(prev => ({ ...prev, isVisible: false }));
+    }, []);
+
+    // Show confirmation dialog
+    const showConfirm = useCallback((title, message, onConfirm) => {
+        setConfirmDialog({ isVisible: true, title, message, onConfirm });
+    }, []);
+
+    // Hide confirmation dialog
+    const hideConfirm = useCallback(() => {
+        setConfirmDialog(prev => ({ ...prev, isVisible: false }));
+    }, []);
 
     // Fetch liabilities data on component mount
     useEffect(() => {
@@ -533,21 +560,27 @@ function Tracker() {
                                                     color: 'white',
                                                     marginRight: 'auto'
                                                 }}
-                                                onClick={async () => {
-                                                    if (window.confirm(`Are you sure you want to delete the budget for "${selectedItem.category}"?`)) {
-                                                        try {
-                                                            const userId = getCurrentUserId();
-                                                            await deleteBudget(
-                                                                selectedItem.category,
-                                                                userId,
-                                                                selectedItem.month
-                                                            );
-                                                            alert('Budget deleted successfully! The page will refresh.');
-                                                            window.location.reload();
-                                                        } catch (err) {
-                                                            alert('Failed to delete budget: ' + err.message);
+                                                onClick={() => {
+                                                    showConfirm(
+                                                        'Delete Budget',
+                                                        `Are you sure you want to delete the budget for "${selectedItem.category}"?`,
+                                                        async () => {
+                                                            hideConfirm();
+                                                            try {
+                                                                const userId = getCurrentUserId();
+                                                                await deleteBudget(
+                                                                    selectedItem.category,
+                                                                    userId,
+                                                                    selectedItem.month
+                                                                );
+                                                                showToast('Budget deleted successfully!', 'success');
+                                                                closeModal();
+                                                                setTimeout(() => window.location.reload(), 1500);
+                                                            } catch (err) {
+                                                                showToast('Failed to delete budget: ' + err.message, 'error');
+                                                            }
                                                         }
-                                                    }
+                                                    );
                                                 }}
                                             >
                                                 Delete
@@ -561,35 +594,40 @@ function Tracker() {
                                                     color: 'white',
                                                     marginRight: 'auto'
                                                 }}
-                                                onClick={async () => {
-                                                    if (window.confirm(`Are you sure you want to delete the goal "${selectedItem.name}"?`)) {
-                                                        try {
-                                                            const userId = getCurrentUserId();
-                                                            await deleteGoal(selectedItem.id, userId);
-                                                            alert('Goal deleted successfully! Refreshing goals...');
-                                                            // Refresh goals list
-                                                            const data = await fetchGoals(userId);
-                                                            const goalsArray = Array.isArray(data) ? data : (data.goals || []);
-                                                            const mappedGoals = goalsArray.map(goal => {
-                                                                const current = goal.current_amount || 0;
-                                                                const target = goal.target_amount || 1;
-                                                                const percent = goal.progress_percent || (target > 0 ? (current / target) * 100 : 0);
+                                                onClick={() => {
+                                                    showConfirm(
+                                                        'Delete Goal',
+                                                        `Are you sure you want to delete the goal "${selectedItem.name}"?`,
+                                                        async () => {
+                                                            hideConfirm();
+                                                            try {
+                                                                const userId = getCurrentUserId();
+                                                                await deleteGoal(selectedItem.id, userId);
+                                                                showToast('Goal deleted successfully!', 'success');
+                                                                // Refresh goals list
+                                                                const data = await fetchGoals(userId);
+                                                                const goalsArray = Array.isArray(data) ? data : (data.goals || []);
+                                                                const mappedGoals = goalsArray.map(goal => {
+                                                                    const current = goal.current_amount || 0;
+                                                                    const target = goal.target_amount || 1;
+                                                                    const percent = goal.progress_percent || (target > 0 ? (current / target) * 100 : 0);
 
-                                                                return {
-                                                                    id: goal.id,
-                                                                    name: goal.name,
-                                                                    target: goal.target_amount,
-                                                                    current: current,
-                                                                    date: goal.target_date,
-                                                                    percent: percent
-                                                                };
-                                                            });
-                                                            setGoals(mappedGoals);
-                                                            closeModal();
-                                                        } catch (err) {
-                                                            alert('Failed to delete goal: ' + err.message);
+                                                                    return {
+                                                                        id: goal.id,
+                                                                        name: goal.name,
+                                                                        target: goal.target_amount,
+                                                                        current: current,
+                                                                        date: goal.target_date,
+                                                                        percent: percent
+                                                                    };
+                                                                });
+                                                                setGoals(mappedGoals);
+                                                                closeModal();
+                                                            } catch (err) {
+                                                                showToast('Failed to delete goal: ' + err.message, 'error');
+                                                            }
                                                         }
-                                                    }
+                                                    );
                                                 }}
                                             >
                                                 Delete
@@ -625,9 +663,9 @@ function Tracker() {
                                                                 category: txn.category
                                                             }));
                                                             setTransactions(mappedTransactions);
-                                                            alert('Transaction saved successfully!');
+                                                            showToast('Transaction saved successfully!', 'success');
                                                         } catch (err) {
-                                                            alert('Failed to save transaction: ' + err.message);
+                                                            showToast('Failed to save transaction: ' + err.message, 'error');
                                                         }
                                                     };
                                                     handleCreateTransaction();
@@ -646,11 +684,11 @@ function Tracker() {
                                                                 selectedItem.month
                                                             );
 
-                                                            alert('Budget updated successfully! The page will refresh to show changes.');
+                                                            showToast('Budget updated successfully!', 'success');
                                                             // Refresh the page to reload budget data
-                                                            window.location.reload();
+                                                            setTimeout(() => window.location.reload(), 1500);
                                                         } catch (err) {
-                                                            alert('Failed to update budget: ' + err.message);
+                                                            showToast('Failed to update budget: ' + err.message, 'error');
                                                         }
                                                     };
                                                     handleUpdateBudget();
@@ -684,9 +722,10 @@ function Tracker() {
                                                                 monthFormatted
                                                             );
 
-                                                            alert('Budget created successfully! It will appear after the page refreshes.');
+                                                            showToast('Budget created successfully!', 'success');
+                                                            setTimeout(() => window.location.reload(), 1500);
                                                         } catch (err) {
-                                                            alert('Failed to create budget: ' + err.message);
+                                                            showToast('Failed to create budget: ' + err.message, 'error');
                                                         }
                                                     };
                                                     handleCreateBudget();
@@ -719,7 +758,7 @@ function Tracker() {
                                                                 selectedItem.date
                                                             );
 
-                                                            alert('Goal created successfully! Refreshing goals...');
+                                                            showToast('Goal created successfully!', 'success');
                                                             // Refresh goals list
                                                             const data = await fetchGoals(userId);
                                                             const goalsArray = Array.isArray(data) ? data : (data.goals || []);
@@ -739,7 +778,7 @@ function Tracker() {
                                                             });
                                                             setGoals(mappedGoals);
                                                         } catch (err) {
-                                                            alert('Failed to create goal: ' + err.message);
+                                                            showToast('Failed to create goal: ' + err.message, 'error');
                                                         }
                                                     };
                                                     handleCreateGoal();
@@ -759,6 +798,25 @@ function Tracker() {
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                {/* Toast Notification */}
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    isVisible={toast.isVisible}
+                    onClose={hideToast}
+                />
+
+                {/* Confirmation Dialog */}
+                <ConfirmDialog
+                    isVisible={confirmDialog.isVisible}
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    onConfirm={confirmDialog.onConfirm}
+                    onCancel={hideConfirm}
+                    confirmText="Delete"
+                    type="danger"
+                />
             </motion.div>
         );
     }
@@ -834,6 +892,25 @@ function Tracker() {
                     ))}
                 </div>
             </motion.div>
+
+            {/* Toast Notification */}
+            <Toast
+                message={toast.message}
+                type={toast.type}
+                isVisible={toast.isVisible}
+                onClose={hideToast}
+            />
+
+            {/* Confirmation Dialog */}
+            <ConfirmDialog
+                isVisible={confirmDialog.isVisible}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={hideConfirm}
+                confirmText="Delete"
+                type="danger"
+            />
         </motion.div>
     );
 }

@@ -1,0 +1,244 @@
+/* Toast Notification Styles */
+.toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: #1F2937;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    max-width: calc(100vw - 40px);
+    min-width: 280px;
+}
+
+.toast-success {
+    border-left: 4px solid #10B981;
+}
+
+.toast-error {
+    border-left: 4px solid #EF4444;
+}
+
+.toast-warning {
+    border-left: 4px solid #F59E0B;
+}
+
+.toast-info {
+    border-left: 4px solid #3B82F6;
+}
+
+.toast-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #F9FAFB;
+    line-height: 1.4;
+}
+
+.toast-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #9CA3AF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.toast-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #F9FAFB;
+}
+
+/* Confirmation Dialog Styles */
+.confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    padding: 20px;
+}
+
+.confirm-dialog {
+    background: #1F2937;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.confirm-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.confirm-icon.danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #EF4444;
+}
+
+.confirm-icon.info {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3B82F6;
+}
+
+.confirm-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #F9FAFB;
+    margin: 0 0 8px;
+}
+
+.confirm-message {
+    font-size: 14px;
+    color: #9CA3AF;
+    margin: 0 0 24px;
+    line-height: 1.5;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.confirm-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.confirm-btn.cancel {
+    background: #374151;
+    color: #F9FAFB;
+}
+
+.confirm-btn.cancel:hover {
+    background: #4B5563;
+}
+
+.confirm-btn.danger {
+    background: #EF4444;
+    color: white;
+}
+
+.confirm-btn.danger:hover {
+    background: #DC2626;
+}
+
+.confirm-btn.info {
+    background: #3B82F6;
+    color: white;
+}
+
+.confirm-btn.info:hover {
+    background: #2563EB;
+}
+
+.confirm-btn.primary {
+    background: #10B981;
+    color: white;
+}
+
+.confirm-btn.primary:hover {
+    background: #059669;
+}
+
+.confirm-btn.primary:disabled {
+    background: #374151;
+    color: #6B7280;
+    cursor: not-allowed;
+}
+
+/* Input Dialog Styles */
+.input-dialog .confirm-message {
+    margin-bottom: 16px;
+}
+
+.input-dialog-field {
+    width: 100%;
+    padding: 14px 16px;
+    background: #374151;
+    border: 2px solid #4B5563;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #F9FAFB;
+    margin-bottom: 20px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.input-dialog-field:focus {
+    outline: none;
+    border-color: #10B981;
+    background: #1F2937;
+}
+
+.input-dialog-field::placeholder {
+    color: #6B7280;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 480px) {
+    .toast {
+        top: 12px;
+        min-width: 260px;
+        padding: 12px 16px;
+    }
+
+    .toast-message {
+        font-size: 13px;
+    }
+
+    .confirm-dialog {
+        padding: 20px;
+        margin: 0 16px;
+    }
+
+    .confirm-title {
+        font-size: 16px;
+    }
+
+    .confirm-message {
+        font-size: 13px;
+    }
+
+    .confirm-btn {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+}

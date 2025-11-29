@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { HomeIcon, PieChartIcon, ChatBubbleIcon, ReaderIcon, BarChartIcon } from '@radix-ui/react-icons';
 import { App } from '@capacitor/app';
 import useBackButton from '../hooks/useBackButton';
@@ -19,6 +19,7 @@ import UpcomingObligations from '../components/dashboard/UpcomingObligations';
 import RecentActivity from '../components/dashboard/RecentActivity';
 import GoalsOverview from '../components/dashboard/GoalsOverview';
 import BudgetOverview from '../components/dashboard/BudgetOverview';
+import Toast, { useToast, InputDialog } from '../components/common/Toast';
 
 function Dashboard({ onLogout }) {
     const [checklistItems, setChecklistItems] = useState([
@@ -38,6 +39,10 @@ function Dashboard({ onLogout }) {
     const [creditCards, setCreditCards] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Toast and Dialog states
+    const { toast, showToast, hideToast } = useToast();
+    const [showInputDialog, setShowInputDialog] = useState(false);
+
     // Trigger squish effect when tab changes
     useEffect(() => {
         setIsSquished(true);
@@ -50,7 +55,7 @@ function Dashboard({ onLogout }) {
         const loadDashboardData = async () => {
             try {
                 setIsLoading(true);
-                const userId = 1; // Hardcoded user ID
+                const userId = localStorage.getItem('finkar_user_id') || 1; // Get user ID from localStorage
 
                 // Fetch all data in parallel
                 const [transactionsData, goalsData, budgetsData, liabilitiesData] = await Promise.all([
@@ -221,11 +226,14 @@ function Dashboard({ onLogout }) {
     };
 
     const addItem = () => {
-        const newText = prompt('Enter new checklist item:');
-        if (newText && newText.trim()) {
-            const newId = Math.max(...checklistItems.map(i => i.id), 0) + 1;
-            setChecklistItems([...checklistItems, { id: newId, text: newText.trim(), completed: false }]);
-        }
+        setShowInputDialog(true);
+    };
+
+    const handleAddChecklistItem = (newText) => {
+        const newId = Math.max(...checklistItems.map(i => i.id), 0) + 1;
+        setChecklistItems([...checklistItems, { id: newId, text: newText, completed: false }]);
+        setShowInputDialog(false);
+        showToast('Checklist item added!', 'success');
     };
 
     // Handle Android back button for tab navigation and app exit
@@ -285,7 +293,7 @@ function Dashboard({ onLogout }) {
             {/* Quick Actions */}
             <QuickActions
                 onAddTransaction={() => setActiveTab(1)}
-                onPayBill={() => alert('Pay Bill feature coming soon!')}
+                onPayBill={() => showToast('Pay Bill feature coming soon!', 'info')}
                 onTrackGoal={() => setActiveTab(1)}
                 onAskAI={() => setActiveTab(2)}
             />
@@ -451,6 +459,25 @@ function Dashboard({ onLogout }) {
 
     return (
         <div className="dashboard page-container">
+            {/* Toast Notification */}
+            <Toast
+                message={toast.message}
+                type={toast.type}
+                isVisible={toast.isVisible}
+                onClose={hideToast}
+            />
+
+            {/* Input Dialog for Checklist */}
+            <InputDialog
+                isVisible={showInputDialog}
+                title="Add Checklist Item"
+                placeholder="Enter your checklist item..."
+                onConfirm={handleAddChecklistItem}
+                onCancel={() => setShowInputDialog(false)}
+                confirmText="Add"
+                cancelText="Cancel"
+            />
+
             {activeTab === 0 && renderHome()}
             {activeTab === 1 && <Tracker />}
             {activeTab === 2 && <Chatbot />}

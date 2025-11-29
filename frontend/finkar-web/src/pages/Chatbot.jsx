@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { sendMessage } from '../services/chatService';
 import { translateHindiToEnglish, containsHindi } from '../services/translationService';
 import './Chatbot.css';
@@ -292,6 +293,7 @@ const Chatbot = () => {
                                 <div className="message-bubble">
                                     {message.sender === 'ai' ? (
                                         <ReactMarkdown
+                                            remarkPlugins={[remarkGfm]}
                                             components={{
                                                 table: ({ node, ...props }) => (
                                                     <table style={{
