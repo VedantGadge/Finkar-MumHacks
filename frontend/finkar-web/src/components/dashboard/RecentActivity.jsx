@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './RecentActivity.css';
 
 const RecentActivity = ({ transactions }) => {
+    const { t } = useLanguage();
     const recentTransactions = transactions.slice(0, 5);
 
     return (
@@ -12,7 +14,7 @@ const RecentActivity = ({ transactions }) => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
         >
-            <h2>Recent Activity</h2>
+            <h2>{t('dashboard.recentActivity')}</h2>
             <div className="activity-list">
                 {recentTransactions.map((transaction, idx) => (
                     <motion.div

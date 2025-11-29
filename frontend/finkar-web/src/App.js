@@ -4,6 +4,7 @@ import Splash from "./pages/Splash";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import { FinanceProvider } from "./contexts/FinanceContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 import { IonApp, setupIonicReact } from "@ionic/react";
 
@@ -58,9 +59,11 @@ function App() {
   };
 
   return (
-    <FinanceProvider>
-      <IonApp>{renderContent()}</IonApp>
-    </FinanceProvider>
+    <LanguageProvider>
+      <FinanceProvider>
+        <IonApp>{renderContent()}</IonApp>
+      </FinanceProvider>
+    </LanguageProvider>
   );
 }
 

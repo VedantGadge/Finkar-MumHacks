@@ -8,7 +8,7 @@ const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
  * @param {string} message - Message text
  * @returns {Promise<Object>} Chat response
  */
-export const sendMessage = async (sessionId, phoneNumber, message) => {
+export const sendMessage = async (sessionId, phoneNumber, message, userId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/chat/message`, {
       method: "POST",
@@ -19,6 +19,7 @@ export const sendMessage = async (sessionId, phoneNumber, message) => {
         session_id: sessionId,
         phone_number: phoneNumber,
         message: message,
+        user_id: userId
       }),
     });
 

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HomeIcon, PieChartIcon, ChatBubbleIcon, ReaderIcon, BarChartIcon } from '@radix-ui/react-icons';
 import { App } from '@capacitor/app';
 import useBackButton from '../hooks/useBackButton';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Dashboard.css';
 import Tracker from './Tracker';
 import Chatbot from './Chatbot';
@@ -22,6 +23,7 @@ import BudgetOverview from '../components/dashboard/BudgetOverview';
 import Toast, { useToast, InputDialog } from '../components/common/Toast';
 
 function Dashboard({ onLogout }) {
+    const { t } = useLanguage();
     const [checklistItems, setChecklistItems] = useState([
         { id: 1, text: 'Save 20000 for vedant debt', completed: false },
         { id: 2, text: 'EMI payment 20th Nov', completed: false },
@@ -274,8 +276,8 @@ function Dashboard({ onLogout }) {
             {/* Header */}
             <div className="dashboard-header">
                 <div className="header-content">
-                    <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>Hello, Vedant</motion.h2>
-                    <motion.p className="header-name" initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45, delay: 0.06 }}>Welcome back</motion.p>
+                    <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>{t('dashboard.hello')}, Vedant</motion.h2>
+                    <motion.p className="header-name" initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45, delay: 0.06 }}>{t('dashboard.welcomeBack')}</motion.p>
                 </div>
                 <motion.button
                     className="profile-button"
@@ -318,7 +320,7 @@ function Dashboard({ onLogout }) {
 
             {/* Spendings Section */}
             <section className="spendings-section">
-                <motion.h2 initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>Your Spendings</motion.h2>
+                <motion.h2 initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>{t('dashboard.yourSpendings')}</motion.h2>
                 <div className="spendings-card">
                     <div className="chart-section">
                         <div className="chart-container">
@@ -390,7 +392,7 @@ function Dashboard({ onLogout }) {
                                 ))
                             ) : (
                                 <motion.div className="legend-item" initial={{ x: 12, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
-                                    <span className="legend-text">No spending data</span>
+                                    <span className="legend-text">{t('dashboard.noSpendingData')}</span>
                                 </motion.div>
                             )}
                         </div>
@@ -413,8 +415,8 @@ function Dashboard({ onLogout }) {
             {/* Checklist Section */}
             <section className="checklist-section">
                 <div className="checklist-header">
-                    <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>Checklist</motion.h2>
-                    <motion.button className="add-btn" onClick={addItem} initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.06 }}>add +</motion.button>
+                    <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>{t('dashboard.checklist')}</motion.h2>
+                    <motion.button className="add-btn" onClick={addItem} initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.06 }}>{t('dashboard.addChecklist')}</motion.button>
                 </div>
 
                 <div className="checklist-items">
@@ -450,7 +452,7 @@ function Dashboard({ onLogout }) {
                             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                         </svg>
-                        Financial Mastery
+                        {t('dashboard.financialMastery')}
                     </motion.h2>
                     <motion.button
                         className="view-all-btn"
@@ -459,7 +461,7 @@ function Dashboard({ onLogout }) {
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.06 }}
                     >
-                        View All →
+                        {t('common.viewAll')} →
                     </motion.button>
                 </div>
                 <motion.div
@@ -472,11 +474,11 @@ function Dashboard({ onLogout }) {
                         <div className="progress-stats-row">
                             <div className="stat-item">
                                 <span className="stat-value">9</span>
-                                <span className="stat-label">Modules</span>
+                                <span className="stat-label">{t('dashboard.modules')}</span>
                             </div>
                             <div className="stat-item">
                                 <span className="stat-value">22</span>
-                                <span className="stat-label">Lessons</span>
+                                <span className="stat-label">{t('dashboard.lessons')}</span>
                             </div>
                         </div>
                         <motion.button
@@ -484,7 +486,7 @@ function Dashboard({ onLogout }) {
                             onClick={() => setActiveTab(3)}
                             whileTap={{ scale: 0.95 }}
                         >
-                            Continue Learning
+                            {t('dashboard.continueLearning')}
                         </motion.button>
                     </div>
                 </motion.div>

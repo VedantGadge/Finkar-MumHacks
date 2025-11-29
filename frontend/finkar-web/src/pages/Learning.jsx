@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Learning.css';
 
 // Learning Data - All 9 Modules
@@ -648,6 +649,7 @@ const saveProgress = (progress) => {
 };
 
 const Learning = () => {
+    const { t } = useLanguage();
     const [expandedModule, setExpandedModule] = useState(null);
     const [selectedLesson, setSelectedLesson] = useState(null);
     const [progress, setProgress] = useState(getProgress());
@@ -770,9 +772,9 @@ const Learning = () => {
                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                     </svg>
-                    Financial Mastery
+                    {t('learning.financialMastery')}
                 </h1>
-                <p>9 Modules · {totalLessons} Lessons · Expert-level curriculum</p>
+                <p>9 {t('learning.modules')} · {totalLessons} {t('learning.lessons')} · {t('learning.expertCurriculum')}</p>
             </motion.div>
 
             {/* Progress Overview */}
@@ -785,7 +787,7 @@ const Learning = () => {
                 <div className="progress-stats">
                     <div className="progress-stat">
                         <span className="progress-stat-value">{completedCount}</span>
-                        <span className="progress-stat-label">Completed</span>
+                        <span className="progress-stat-label">{t('learning.completed')}</span>
                     </div>
                     <div className="progress-ring">
                         <svg width="80" height="80" viewBox="0 0 80 80">
@@ -805,7 +807,7 @@ const Learning = () => {
                     </div>
                     <div className="progress-stat">
                         <span className="progress-stat-value">{totalLessons - completedCount}</span>
-                        <span className="progress-stat-label">Remaining</span>
+                        <span className="progress-stat-label">{t('learning.remaining')}</span>
                     </div>
                 </div>
             </motion.div>
@@ -825,7 +827,7 @@ const Learning = () => {
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="Search modules or lessons..."
+                        placeholder={t('learning.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -845,7 +847,7 @@ const Learning = () => {
                         className={`filter-tab ${activeFilter === filter ? 'active' : ''}`}
                         onClick={() => setActiveFilter(filter)}
                     >
-                        {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                        {t(`learning.${filter}`)}
                     </button>
                 ))}
             </motion.div>
@@ -862,12 +864,12 @@ const Learning = () => {
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                         <polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
-                    Learning Path
+                    {t('learning.learningPath')}
                 </h3>
                 <ul className="quick-tips-list">
-                    <li>Start with Modules 1-2 for fundamentals</li>
-                    <li>Practice concepts before moving to advanced modules</li>
-                    <li>Revisit technical analysis weekly for retention</li>
+                    <li>{t('learning.tip1')}</li>
+                    <li>{t('learning.tip2')}</li>
+                    <li>{t('learning.tip3')}</li>
                 </ul>
             </motion.div>
 
@@ -878,7 +880,7 @@ const Learning = () => {
                         <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                         <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                     </svg>
-                    Course Modules
+                    {t('learning.courseModules')}
                 </h2>
 
                 {filteredModules.map((module, index) => (
@@ -903,7 +905,7 @@ const Learning = () => {
                                             <line x1="16" y1="13" x2="8" y2="13" />
                                             <line x1="16" y1="17" x2="8" y2="17" />
                                         </svg>
-                                        {module.lessons.length} lessons
+                                        {module.lessons.length} {t('learning.lessonsCount')}
                                     </span>
                                     <span className={`module-difficulty ${module.difficulty}`}>
                                         {module.difficulty}
@@ -1072,7 +1074,7 @@ const Learning = () => {
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                                                 <path d="M5 12L10 17L19 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                             </svg>
-                                            Completed
+                                            {t('learning.completedBtn')}
                                         </>
                                     ) : (
                                         <>
@@ -1080,7 +1082,7 @@ const Learning = () => {
                                                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
                                                 <path d="M8 12L11 15L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                             </svg>
-                                            Mark as Complete
+                                            {t('learning.markComplete')}
                                         </>
                                     )}
                                 </button>

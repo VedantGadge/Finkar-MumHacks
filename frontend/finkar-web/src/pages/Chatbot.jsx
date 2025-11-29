@@ -4,15 +4,28 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { sendMessage } from '../services/chatService';
 import { translateHindiToEnglish, containsHindi } from '../services/translationService';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Chatbot.css';
 
-// Hardcoded constants as per requirements
-const SESSION_ID = "default-session";
-const PHONE_NUMBER = "9876543210";
-
 const STORAGE_KEY = 'finkar_chatbot_messages';
+const SESSION_KEY = 'finkar_chatbot_session_id';
 
 const Chatbot = () => {
+    const { t } = useLanguage();
+    
+    // Session Management
+    const [sessionId] = useState(() => {
+        let sid = localStorage.getItem(SESSION_KEY);
+        if (!sid) {
+            sid = 'session_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem(SESSION_KEY, sid);
+        }
+        return sid;
+    });
+
+    const userId = parseInt(localStorage.getItem('finkar_user_id') || '1', 10);
+    const phoneNumber = "9876543210"; // Placeholder
+
     // Load messages from localStorage or use default greeting
     const [messages, setMessages] = useState(() => {
         try {
@@ -204,7 +217,7 @@ const Chatbot = () => {
 
         try {
             // Call API
-            const response = await sendMessage(SESSION_ID, PHONE_NUMBER, trimmedMessage);
+            const response = await sendMessage(sessionId, phoneNumber, trimmedMessage, userId);
 
             // Add AI response to chat
             const aiResponseText = response.response || response.message || "I received your message!";
@@ -260,8 +273,8 @@ const Chatbot = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.3 }}
             >
-                <h2>AI Assistant</h2>
-                <p>Your personal financial advisor</p>
+                <h2>{t('chatbot.title')}</h2>
+                <p>{t('chatbot.subtitle')}</p>
             </motion.div>
 
             {/* Messages Container */}
@@ -405,7 +418,7 @@ const Chatbot = () => {
                     <textarea
                         ref={inputRef}
                         className="chat-input"
-                        placeholder={isTranslating ? "Translating..." : isListening ? "Listening... (English/Hindi)" : "Ask about your finances..."}
+                        placeholder={isTranslating ? t('chatbot.thinking') : isListening ? "Listening... (English/Hindi)" : t('chatbot.placeholder')}
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyPress={handleKeyPress}

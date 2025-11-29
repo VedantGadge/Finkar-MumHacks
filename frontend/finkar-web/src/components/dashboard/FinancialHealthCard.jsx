@@ -1,18 +1,21 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './FinancialHealthCard.css';
 
 const FinancialHealthCard = ({ balance, healthScore }) => {
+    const { t } = useLanguage();
+    
     // Safely handle balance value
     const safeBalance = isNaN(balance) || balance === undefined ? 0 : balance;
     const safeHealthScore = isNaN(healthScore) || healthScore === undefined ? 50 : healthScore;
 
     // Determine status based on health score
     const getStatusInfo = () => {
-        if (safeHealthScore >= 80) return { text: 'Excellent', color: '#10B981', emoji: '🚀' };
-        if (safeHealthScore >= 60) return { text: 'Good', color: '#F59E0B', emoji: '👍' };
-        if (safeHealthScore >= 40) return { text: 'Fair', color: '#EF4444', emoji: '⚠️' };
-        return { text: 'Needs Attention', color: '#DC2626', emoji: '⚡' };
+        if (safeHealthScore >= 80) return { text: t('dashboard.excellent') || 'Excellent', color: '#10B981', emoji: '🚀' };
+        if (safeHealthScore >= 60) return { text: t('dashboard.good') || 'Good', color: '#F59E0B', emoji: '👍' };
+        if (safeHealthScore >= 40) return { text: t('dashboard.fair') || 'Fair', color: '#EF4444', emoji: '⚠️' };
+        return { text: t('dashboard.needsAttention') || 'Needs Attention', color: '#DC2626', emoji: '⚡' };
     };
 
     const status = getStatusInfo();
@@ -24,11 +27,11 @@ const FinancialHealthCard = ({ balance, healthScore }) => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
         >
-            <h2>Financial Health</h2>
+            <h2>{t('dashboard.financialHealth')}</h2>
             <div className="health-card">
                 <div className="health-left">
                     <div className="balance-info">
-                        <span className="balance-label">Total Balance</span>
+                        <span className="balance-label">{t('dashboard.totalBalance')}</span>
                         <span className="balance-amount">₹{safeBalance.toLocaleString()}</span>
                     </div>
                     <div className="health-status" style={{ color: status.color }}>

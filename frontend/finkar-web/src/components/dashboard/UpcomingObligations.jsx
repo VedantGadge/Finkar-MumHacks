@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './UpcomingObligations.css';
 
 const UpcomingObligations = ({ obligations }) => {
+    const { t } = useLanguage();
+    
     if (obligations.length === 0) {
         return (
             <motion.section
@@ -11,9 +14,9 @@ const UpcomingObligations = ({ obligations }) => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
             >
-                <h2>Upcoming Obligations</h2>
+                <h2>{t('dashboard.upcomingObligations')}</h2>
                 <div className="obligations-empty">
-                    <span>No upcoming payments in the next 7 days 🎉</span>
+                    <span>{t('dashboard.noUpcoming')} 🎉</span>
                 </div>
             </motion.section>
         );
@@ -26,7 +29,7 @@ const UpcomingObligations = ({ obligations }) => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
         >
-            <h2>Upcoming Obligations</h2>
+            <h2>{t('dashboard.upcomingObligations')}</h2>
             <div className="obligations-list">
                 {obligations.map((obligation, idx) => {
                     const daysUntilDue = Math.ceil((new Date(obligation.date) - new Date()) / (1000 * 60 * 60 * 24));
@@ -45,7 +48,7 @@ const UpcomingObligations = ({ obligations }) => {
                             <div className="obligation-details">
                                 <span className="obligation-amount">₹{obligation.amount.toLocaleString()}</span>
                                 <span className="obligation-due">
-                                    {daysUntilDue === 0 ? 'Today' : daysUntilDue === 1 ? 'Tomorrow' : `In ${daysUntilDue} days`}
+                                    {daysUntilDue === 0 ? t('common.today') : daysUntilDue === 1 ? t('dashboard.tomorrow') || 'Tomorrow' : `${daysUntilDue} ${t('dashboard.days') || 'days'}`}
                                 </span>
                             </div>
                         </motion.div>

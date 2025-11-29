@@ -5,6 +5,7 @@ import { createBudget, updateBudget, deleteBudget, getCurrentUserId } from '../s
 import { fetchLiabilities } from '../services/liabilitiesService';
 import { fetchGoals, createGoal, deleteGoal } from '../services/goalsService';
 import { createManualTransaction, fetchTransactions } from '../services/transactionsService';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Tracker.css';
 import TransactionsCard from '../components/tracker/TransactionsCard';
 import BudgetCard from '../components/tracker/BudgetCard';
@@ -17,6 +18,8 @@ import Toast, { ConfirmDialog } from '../components/common/Toast';
 import '../components/common/Toast.css';
 
 function Tracker() {
+    const { t } = useLanguage();
+    
     // 1. Transactions Data - fetched from API
     const [transactions, setTransactions] = useState([]);
 
@@ -206,12 +209,12 @@ function Tracker() {
     }, []);
 
     const cards = [
-        { id: 'transactions', title: 'Transactions', subtitle: 'Daily Tracker', color: '#3B82F6', type: 'transactions' },
-        { id: 'budget', title: 'Budget', subtitle: 'Monthly Planner', color: '#10B981', type: 'budget' },
-        { id: 'loans', title: 'Loans & EMIs', subtitle: 'Active Loans', color: '#F59E0B', type: 'loans' },
-        { id: 'credit', title: 'Credit Cards', subtitle: 'Usage & Dues', color: '#8B5CF6', type: 'credit' },
-        { id: 'goals', title: 'Goals', subtitle: 'Savings Targets', color: '#EC4899', type: 'goals' },
-        { id: 'categories', title: 'Categories', subtitle: 'Money Map', color: '#6366F1', type: 'categories' }
+        { id: 'transactions', title: t('tracker.transactions'), subtitle: 'Daily Tracker', color: '#3B82F6', type: 'transactions' },
+        { id: 'budget', title: t('tracker.budget'), subtitle: 'Monthly Planner', color: '#10B981', type: 'budget' },
+        { id: 'loans', title: t('tracker.loans'), subtitle: 'Active Loans', color: '#F59E0B', type: 'loans' },
+        { id: 'credit', title: t('tracker.creditCards'), subtitle: 'Usage & Dues', color: '#8B5CF6', type: 'credit' },
+        { id: 'goals', title: t('tracker.goals'), subtitle: 'Savings Targets', color: '#EC4899', type: 'goals' },
+        { id: 'categories', title: t('tracker.categories'), subtitle: 'Money Map', color: '#6366F1', type: 'categories' }
     ];
 
     // Memoized Stats Calculations - only recalculate when data changes
@@ -284,7 +287,7 @@ function Tracker() {
             case 'goals':
                 return <GoalsCard goals={goals} onEdit={openModal} />;
             case 'categories':
-                return <CategoriesCard categories={categories} onEdit={openModal} />;
+                return <CategoriesCard categories={categories} transactions={transactions} onEdit={openModal} />;
             default:
                 return null;
         }
@@ -349,12 +352,17 @@ function Tracker() {
 
     if (expandedCard) {
         const card = cards.find(c => c.id === expandedCard);
+        // Only show add button for cards that support adding new items
+        const showAddButton = !['loans', 'credit'].includes(expandedCard);
+
         return (
             <motion.div className="tracker-container expanded page-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="expanded-header">
                     <button className="back-btn" onClick={closeCard}>← Back</button>
                     <h2>{card.title}</h2>
-                    <button className="add-btn" onClick={() => openModal({})}>+ Add</button>
+                    {showAddButton && (
+                        <button className="add-btn" onClick={() => openModal({})}>+ Add</button>
+                    )}
                 </div>
                 <motion.div className="expanded-content" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
                     {renderExpandedContent(expandedCard)}
@@ -824,7 +832,7 @@ function Tracker() {
     return (
         <motion.div className="tracker-container page-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="tracker-header">
-                <h2>Spending Overview</h2>
+                <h2>{t('tracker.title')}</h2>
                 <p>Swipe to browse • Tap a card to view</p>
             </div>
 
@@ -868,17 +876,17 @@ function Tracker() {
 
             <motion.div className="stats-summary" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
                 <div className="stat-item">
-                    <span className="stat-label">Total Balance</span>
+                    <span className="stat-label">{t('dashboard.balance')}</span>
                     <span className="stat-value balance">₹{totalBalance.toLocaleString()}</span>
                 </div>
                 <div className="stat-item">
-                    <span className="stat-label">This Month</span>
+                    <span className="stat-label">{t('common.thisMonth')}</span>
                     <span className="stat-value expense">₹{monthlySpending.toLocaleString()}</span>
                 </div>
             </motion.div>
 
             <motion.div className="recent-preview" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
-                <h3>Recent Activity</h3>
+                <h3>{t('dashboard.recentActivity')}</h3>
                 <div className="preview-list">
                     {transactions.slice(0, 3).map((t, i) => (
                         <motion.div key={t.id} className={`preview-item ${t.type}`}

@@ -6,9 +6,11 @@ import { fetchTickers, generateCaseStudy, getTickerDisplayName, fetchMarketIndic
 import { mapApiToStockData } from '../utils/stockMapper';
 import useBackButton from '../hooks/useBackButton';
 import IndexChart from '../components/IndexChart';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Stocks.css';
 
 const Stocks = () => {
+    const { t } = useLanguage();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStock, setSelectedStock] = useState(null);
     const [currentLesson, setCurrentLesson] = useState(0);
@@ -276,7 +278,7 @@ const Stocks = () => {
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                 >
-                    <ChevronLeftIcon /> Back to Stocks
+                    <ChevronLeftIcon /> {t('stocks.backToStocks')}
                 </motion.button>
 
                 <motion.div
@@ -309,19 +311,19 @@ const Stocks = () => {
                     <div className="section-divider"></div>
 
                     <section className="detail-section-seamless">
-                        <h3>Stock Performance Analysis</h3>
+                        <h3>{t('stocks.performanceAnalysis')}</h3>
 
                         <div className="price-stats">
                             <div className="stat-item">
-                                <span className="stat-label">Starting Price</span>
+                                <span className="stat-label">{t('stocks.startingPrice')}</span>
                                 <span className="stat-value">₹{selectedStock.priceData.starting.toFixed(1)}</span>
                             </div>
                             <div className="stat-item">
-                                <span className="stat-label">Current Price</span>
+                                <span className="stat-label">{t('stocks.currentPrice')}</span>
                                 <span className="stat-value primary">₹{selectedStock.priceData.current.toFixed(1)}</span>
                             </div>
                             <div className="stat-item">
-                                <span className="stat-label">Change</span>
+                                <span className="stat-label">{t('stocks.change')}</span>
                                 <span className="stat-value positive">
                                     +₹{selectedStock.priceData.change.toFixed(1)} ({selectedStock.priceData.changePercent}%)
                                 </span>
@@ -355,8 +357,8 @@ const Stocks = () => {
                                     />
                                 </svg>
                                 <p className="chart-insight">
-                                    <strong>Trend:</strong> {selectedStock.trend} |
-                                    <strong> Volatility:</strong> {selectedStock.priceData.volatility}% (Low)
+                                    <strong>{t('stocks.trend')}:</strong> {selectedStock.trend} |
+                                    <strong> {t('stocks.volatility')}:</strong> {selectedStock.priceData.volatility}%
                                 </p>
                             </div>
                         )}
@@ -365,11 +367,11 @@ const Stocks = () => {
                     <div className="section-divider"></div>
 
                     <section className="detail-section-seamless">
-                        <h3>Market Sentiment Analysis</h3>
+                        <h3>{t('stocks.sentimentAnalysis')}</h3>
 
                         <div className="sentiment-overview">
                             <div className="sentiment-header">
-                                <span className="sentiment-label">Overall Sentiment:</span>
+                                <span className="sentiment-label">{t('stocks.overallSentiment')}</span>
                                 <span
                                     className="sentiment-badge"
                                     style={{ background: getSentimentColor(selectedStock.sentiment.overall) }}
@@ -380,15 +382,15 @@ const Stocks = () => {
 
                             <div className="sentiment-metrics">
                                 <div className="metric">
-                                    <span>Compound Score:</span>
+                                    <span>{t('stocks.compoundScore')}</span>
                                     <strong>{selectedStock.sentiment.compound}</strong>
                                 </div>
                                 <div className="metric">
-                                    <span>Confidence:</span>
+                                    <span>{t('stocks.confidence')}</span>
                                     <strong>{selectedStock.sentiment.confidence.charAt(0).toUpperCase() + selectedStock.sentiment.confidence.slice(1)}</strong>
                                 </div>
                                 <div className="metric">
-                                    <span>Articles Analyzed:</span>
+                                    <span>{t('stocks.articlesAnalyzed')}</span>
                                     <strong>{selectedStock.sentiment.articlesAnalyzed}</strong>
                                 </div>
                             </div>
@@ -399,10 +401,10 @@ const Stocks = () => {
                     <div className="section-divider"></div>
 
                     <section className="detail-section-seamless">
-                        <h3>Trading Signal</h3>
+                        <h3>{t('stocks.tradingSignal')}</h3>
                         <div className="trading-signal">
                             <div className="signal-main">
-                                <span className="signal-label">Recommendation:</span>
+                                <span className="signal-label">{t('stocks.recommendation')}</span>
                                 <span
                                     className="signal-value"
                                     style={{ color: getSignalColor(selectedStock.signal) }}
@@ -411,8 +413,8 @@ const Stocks = () => {
                                 </span>
                             </div>
                             <div className="signal-details">
-                                <span>Signal Strength: <strong>{selectedStock.signalStrength}</strong></span>
-                                <span>Confidence: <strong>{selectedStock.confidence}</strong></span>
+                                <span>{t('stocks.signalStrength')} <strong>{selectedStock.signalStrength}</strong></span>
+                                <span>{t('stocks.confidence')} <strong>{selectedStock.confidence}</strong></span>
                             </div>
                         </div>
                     </section>
@@ -421,7 +423,7 @@ const Stocks = () => {
 
                     {selectedStock.lessons && selectedStock.lessons.length > 0 && (
                         <section className="detail-section-seamless learning-section">
-                            <h3>Practical Trading Wisdom</h3>
+                            <h3>{t('stocks.tradingWisdom')}</h3>
 
                             <div className="lesson-carousel">
                                 <AnimatePresence mode="wait">
@@ -434,7 +436,7 @@ const Stocks = () => {
                                         transition={{ duration: 0.3 }}
                                     >
                                         <div className="lesson-number">
-                                            LESSON {currentLesson + 1} OF {selectedStock.lessons.length}
+                                            {t('stocks.lesson')} {currentLesson + 1} {t('stocks.of')} {selectedStock.lessons.length}
                                         </div>
                                         <h4>{selectedStock.lessons[currentLesson].title}</h4>
                                         <p className="lesson-description">
@@ -442,7 +444,7 @@ const Stocks = () => {
                                         </p>
                                         {selectedStock.lessons[currentLesson].tip && (
                                             <div className="lesson-tip">
-                                                <strong>Financial Literacy Tip:</strong>
+                                                <strong>{t('stocks.financialTip')}</strong>
                                                 <p>{selectedStock.lessons[currentLesson].tip}</p>
                                             </div>
                                         )}
@@ -491,7 +493,7 @@ const Stocks = () => {
                     animate={{ opacity: 1 }}
                 >
                     <div className="loading-spinner"></div>
-                    <p>Loading featured case studies...</p>
+                    <p>{t('stocks.loadingCaseStudies')}</p>
                 </motion.div>
             )}
 
@@ -500,7 +502,7 @@ const Stocks = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.45 }}
             >
-                Stock Case Studies
+                {t('stocks.title')}
             </motion.h2>
             <motion.p
                 className="page-subtitle"
@@ -508,7 +510,7 @@ const Stocks = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.45, delay: 0.05 }}
             >
-                Learn investing through real company examples
+                {t('stocks.subtitle')}
             </motion.p>
 
             <motion.div
@@ -520,7 +522,7 @@ const Stocks = () => {
                 <MagnifyingGlassIcon className="search-icon" />
                 <input
                     type="text"
-                    placeholder={isLoadingTickers ? "Loading tickers..." : "Search for companies..."}
+                    placeholder={isLoadingTickers ? t('common.loading') : t('stocks.searchStocks')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="search-input"
@@ -554,7 +556,7 @@ const Stocks = () => {
                         animate={{ opacity: 1, y: 0 }}
                     >
                         <div className="search-no-results">
-                            No matching stocks found
+                            {t('stocks.noStocksFound')}
                         </div>
                     </motion.div>
                 )}
@@ -567,7 +569,7 @@ const Stocks = () => {
                     animate={{ opacity: 1 }}
                 >
                     <div className="loading-spinner"></div>
-                    <p>Generating case study...</p>
+                    <p>{t('stocks.generatingCaseStudy')}</p>
                 </motion.div>
             )}
 
@@ -584,7 +586,7 @@ const Stocks = () => {
             )}
 
             <section className="featured-section">
-                <h3>Featured Companies</h3>
+                <h3>{t('stocks.featuredCompanies')}</h3>
                 <div className="stocks-carousel" ref={carouselRef}>
                     {[...featuredTickers, ...featuredTickers, ...featuredTickers, ...featuredTickers].map((symbol, index) => {
                         const stockData = quickStockData[symbol];
@@ -639,12 +641,12 @@ const Stocks = () => {
                                     ₹{stockData.end_price.toFixed(1)}
                                 </div>
                                 <div className="stock-footer">
-                                    <span className="stock-sector">Volatility: {stockData.volatility}%</span>
+                                    <span className="stock-sector">{t('stocks.volatility')}: {stockData.volatility}%</span>
                                     <span
                                         className="stock-signal"
                                         style={{ color: isPositive ? '#047857' : '#DC2626' }}
                                     >
-                                        {isPositive ? 'Gaining' : 'Declining'}
+                                        {isPositive ? t('stocks.gaining') : t('stocks.declining')}
                                     </span>
                                 </div>
                             </motion.div>
@@ -659,7 +661,7 @@ const Stocks = () => {
 
 
             <section className="sector-heatmap-section">
-                <h3>Sector Performance Heatmap</h3>
+                <h3>{t('stocks.sectorPerformance')}</h3>
                 <div className="sector-heatmap-grid">
                     {sectorPerformance.map((sector, i) => {
                         const isPositive = sector.performance > 0;

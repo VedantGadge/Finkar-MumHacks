@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './QuickActions.css';
 
 const QuickActions = ({ onAddTransaction, onPayBill, onTrackGoal, onAskAI }) => {
+    const { t } = useLanguage();
+    
     const actions = [
         {
             id: 1,
@@ -12,7 +15,7 @@ const QuickActions = ({ onAddTransaction, onPayBill, onTrackGoal, onAskAI }) => 
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
             ),
-            label: 'Add Transaction',
+            label: t('dashboard.addTransaction'),
             onClick: onAddTransaction,
             color: '#10B981'
         },
@@ -27,7 +30,7 @@ const QuickActions = ({ onAddTransaction, onPayBill, onTrackGoal, onAskAI }) => 
                     <polyline points="10 9 9 9 8 9"></polyline>
                 </svg>
             ),
-            label: 'Pay Bill',
+            label: t('dashboard.payBill'),
             onClick: onPayBill,
             color: '#3B82F6'
         },
@@ -39,7 +42,7 @@ const QuickActions = ({ onAddTransaction, onPayBill, onTrackGoal, onAskAI }) => 
                     <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
             ),
-            label: 'Track Goal',
+            label: t('dashboard.trackGoal'),
             onClick: onTrackGoal,
             color: '#8B5CF6'
         },
@@ -52,7 +55,7 @@ const QuickActions = ({ onAddTransaction, onPayBill, onTrackGoal, onAskAI }) => 
                     <line x1="12" y1="7" x2="12" y2="13"></line>
                 </svg>
             ),
-            label: 'Ask AI',
+            label: t('dashboard.askAI'),
             onClick: onAskAI,
             color: '#F59E0B'
         },
@@ -65,7 +68,7 @@ const QuickActions = ({ onAddTransaction, onPayBill, onTrackGoal, onAskAI }) => 
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
         >
-            <h2>Quick Actions</h2>
+            <h2>{t('dashboard.quickActions')}</h2>
             <div className="actions-grid">
                 {actions.map((action, idx) => (
                     <motion.button

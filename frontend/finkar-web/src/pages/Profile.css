@@ -376,3 +376,112 @@
         font-size: 22px;
     }
 }
+
+/* Language Modal */
+.language-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.language-modal {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 320px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.language-modal h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 20px 0;
+    text-align: center;
+}
+
+.language-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.language-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: #F9FAFB;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    width: 100%;
+}
+
+.language-option:hover {
+    background: #F3F4F6;
+}
+
+.language-option.active {
+    background: #ECFDF5;
+    border-color: #047857;
+}
+
+.lang-flag {
+    font-size: 24px;
+}
+
+.lang-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1F2937;
+    text-align: left;
+}
+
+.language-option .check-icon {
+    flex-shrink: 0;
+}
+
+.modal-close-btn {
+    width: 100%;
+    padding: 14px;
+    background: #F3F4F6;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #6B7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.modal-close-btn:hover {
+    background: #E5E7EB;
+}
+
+/* Settings Value */
+.settings-value {
+    font-size: 14px;
+    color: #047857;
+    font-weight: 500;
+    margin-right: 8px;
+}
+
+/* Language Icon */
+.settings-icon.language-icon {
+    background: #ECFDF5;
+}
