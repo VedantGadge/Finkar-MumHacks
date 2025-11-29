@@ -1,7 +1,10 @@
 import React from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Splash.css';
 
 export default function Splash() {
+  const { t } = useLanguage();
+  
   return (
     <div className="splash-root page-container">
       <div className="splash-frame">
@@ -27,7 +30,7 @@ export default function Splash() {
             </svg>
           </div>
           <h1 className="splash-title">FinKar</h1>
-          <p className="splash-sub">your money, simplified.</p>
+          <p className="splash-sub">{t('splash.tagline')}</p>
         </div>
       </div>
     </div>

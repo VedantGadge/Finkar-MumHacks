@@ -210,6 +210,8 @@
 /* Input Area */
 .chat-input-container {
     padding: 16px 20px;
+    padding-bottom: 20px;
+    margin-bottom: 16px;
     background: #FFFFFF;
     border-top: 1px solid #E5E7EB;
     width: 100%;

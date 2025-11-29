@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './GoalsOverview.css';
 
 const GoalsOverview = ({ goals, onTrackGoal }) => {
+    const { t } = useLanguage();
+    
     // Sort goals by progress (closest to completion first) or priority
     // For now, let's just take the first 2 goals
     const displayGoals = goals.slice(0, 2);
@@ -16,11 +19,11 @@ const GoalsOverview = ({ goals, onTrackGoal }) => {
                 transition={{ duration: 0.5, delay: 0.2 }}
             >
                 <div className="section-header">
-                    <h2>Your Goals</h2>
-                    <button className="see-all-btn" onClick={onTrackGoal}>Add Goal</button>
+                    <h2>{t('dashboard.yourGoals')}</h2>
+                    <button className="see-all-btn" onClick={onTrackGoal}>{t('tracker.addGoal')}</button>
                 </div>
                 <div className="empty-goals">
-                    <p>No active goals yet. Start saving today!</p>
+                    <p>{t('dashboard.noGoalsYet')}</p>
                 </div>
             </motion.section>
         );
@@ -34,8 +37,8 @@ const GoalsOverview = ({ goals, onTrackGoal }) => {
             transition={{ duration: 0.5, delay: 0.2 }}
         >
             <div className="section-header">
-                <h2>Your Goals</h2>
-                <button className="see-all-btn" onClick={onTrackGoal}>See All</button>
+                <h2>{t('dashboard.yourGoals')}</h2>
+                <button className="see-all-btn" onClick={onTrackGoal}>{t('common.viewAll')}</button>
             </div>
 
             <div className="goals-list">

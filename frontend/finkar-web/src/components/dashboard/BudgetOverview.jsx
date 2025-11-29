@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './BudgetOverview.css';
 
 const BudgetOverview = ({ budget, onManageBudget }) => {
+    const { t } = useLanguage();
+    
     if (!budget || !budget.total_budget) {
         return (
             <motion.section
@@ -12,11 +15,11 @@ const BudgetOverview = ({ budget, onManageBudget }) => {
                 transition={{ duration: 0.5, delay: 0.25 }}
             >
                 <div className="section-header">
-                    <h2>Monthly Budget</h2>
-                    <button className="manage-btn" onClick={onManageBudget}>Set Budget</button>
+                    <h2>{t('dashboard.monthlyBudget')}</h2>
+                    <button className="manage-btn" onClick={onManageBudget}>{t('dashboard.setBudget')}</button>
                 </div>
                 <div className="empty-budget">
-                    <p>No budget set for this month.</p>
+                    <p>{t('dashboard.noBudgetSet')}</p>
                 </div>
             </motion.section>
         );
@@ -35,21 +38,21 @@ const BudgetOverview = ({ budget, onManageBudget }) => {
             transition={{ duration: 0.5, delay: 0.25 }}
         >
             <div className="section-header">
-                <h2>Monthly Budget</h2>
-                <button className="manage-btn" onClick={onManageBudget}>Manage</button>
+                <h2>{t('dashboard.monthlyBudget')}</h2>
+                <button className="manage-btn" onClick={onManageBudget}>{t('dashboard.manage')}</button>
             </div>
 
             <div className="budget-card">
                 <div className="budget-header">
                     <span className="month-label">{budget.month}</span>
                     <span className={`status-badge ${isOver ? 'over' : 'good'}`}>
-                        {isOver ? 'Over Budget' : 'On Track'}
+                        {isOver ? t('dashboard.overBudget') : t('dashboard.onTrack')}
                     </span>
                 </div>
 
                 <div className="budget-values">
                     <span className="spent-value">₹{totalSpent.toLocaleString()}</span>
-                    <span className="total-value">of ₹{totalBudget.toLocaleString()}</span>
+                    <span className="total-value">{t('dashboard.of')} ₹{totalBudget.toLocaleString()}</span>
                 </div>
 
                 <div className="budget-progress-bg">
@@ -63,8 +66,8 @@ const BudgetOverview = ({ budget, onManageBudget }) => {
                 </div>
 
                 <div className="budget-footer">
-                    <span>{percentUsed.toFixed(0)}% used</span>
-                    <span>₹{(totalBudget - totalSpent).toLocaleString()} left</span>
+                    <span>{percentUsed.toFixed(0)}% {t('dashboard.used')}</span>
+                    <span>₹{(totalBudget - totalSpent).toLocaleString()} {t('dashboard.left')}</span>
                 </div>
             </div>
         </motion.section>

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../contexts/LanguageContext';
 import './Profile.css';
 
 export default function Profile({ onLogout, onBack }) {
+    const { t, language, setLanguage } = useLanguage();
     const [userInfo, setUserInfo] = useState({
         phone: '',
         linkedBanks: []
     });
+    const [showLanguageModal, setShowLanguageModal] = useState(false);
 
     useEffect(() => {
         // Load user info from localStorage
@@ -38,6 +41,49 @@ export default function Profile({ onLogout, onBack }) {
 
     return (
         <div className="profile-page">
+            {/* Language Selection Modal */}
+            {showLanguageModal && (
+                <div className="language-modal-overlay" onClick={() => setShowLanguageModal(false)}>
+                    <motion.div 
+                        className="language-modal"
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3>{t('profile.selectLanguage')}</h3>
+                        <div className="language-options">
+                            <button 
+                                className={`language-option ${language === 'en' ? 'active' : ''}`}
+                                onClick={() => { setLanguage('en'); setShowLanguageModal(false); }}
+                            >
+                                <span className="lang-flag">🇬🇧</span>
+                                <span className="lang-name">{t('profile.english')}</span>
+                                {language === 'en' && (
+                                    <svg className="check-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="#047857" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                )}
+                            </button>
+                            <button 
+                                className={`language-option ${language === 'hi' ? 'active' : ''}`}
+                                onClick={() => { setLanguage('hi'); setShowLanguageModal(false); }}
+                            >
+                                <span className="lang-flag">🇮🇳</span>
+                                <span className="lang-name">{t('profile.hindi')}</span>
+                                {language === 'hi' && (
+                                    <svg className="check-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 6L9 17L4 12" stroke="#047857" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
+                        <button className="modal-close-btn" onClick={() => setShowLanguageModal(false)}>
+                            {t('common.close')}
+                        </button>
+                    </motion.div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="profile-header">
                 <button className="back-button" onClick={onBack}>
@@ -50,7 +96,7 @@ export default function Profile({ onLogout, onBack }) {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.3 }}
                 >
-                    Profile
+                    {t('profile.title')}
                 </motion.h1>
 
             </div>
@@ -68,7 +114,7 @@ export default function Profile({ onLogout, onBack }) {
                         <circle cx="12" cy="7" r="4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </div>
-                <h2 className="profile-name">FinKar User</h2>
+                <h2 className="profile-name">{t('profile.user')}</h2>
                 {userInfo.phone && (
                     <p className="profile-phone">+91 {userInfo.phone}</p>
                 )}
@@ -83,7 +129,7 @@ export default function Profile({ onLogout, onBack }) {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.3 }}
                 >
-                    <h3 className="section-title">Account Information</h3>
+                    <h3 className="section-title">{t('profile.accountInfo')}</h3>
                     <div className="section-card">
                         <div className="info-row">
                             <div className="info-icon">
@@ -92,8 +138,8 @@ export default function Profile({ onLogout, onBack }) {
                                 </svg>
                             </div>
                             <div className="info-content">
-                                <span className="info-label">Mobile Number</span>
-                                <span className="info-value">{userInfo.phone ? `+91 ${userInfo.phone}` : 'Not set'}</span>
+                                <span className="info-label">{t('profile.mobileNumber')}</span>
+                                <span className="info-value">{userInfo.phone ? `+91 ${userInfo.phone}` : t('profile.notSet')}</span>
                             </div>
                         </div>
                         <div className="info-row">
@@ -105,8 +151,8 @@ export default function Profile({ onLogout, onBack }) {
                                 </svg>
                             </div>
                             <div className="info-content">
-                                <span className="info-label">Account Type</span>
-                                <span className="info-value">Personal</span>
+                                <span className="info-label">{t('profile.accountType')}</span>
+                                <span className="info-value">{t('profile.personal')}</span>
                             </div>
                         </div>
                         <div className="info-row">
@@ -116,10 +162,10 @@ export default function Profile({ onLogout, onBack }) {
                                 </svg>
                             </div>
                             <div className="info-content">
-                                <span className="info-label">Account Status</span>
+                                <span className="info-label">{t('profile.accountStatus')}</span>
                                 <span className="info-value status-active">
                                     <span className="status-dot"></span>
-                                    Verified
+                                    {t('profile.verified')}
                                 </span>
                             </div>
                         </div>
@@ -133,7 +179,7 @@ export default function Profile({ onLogout, onBack }) {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.3, duration: 0.3 }}
                 >
-                    <h3 className="section-title">Linked Banks</h3>
+                    <h3 className="section-title">{t('profile.linkedBanks')}</h3>
                     <div className="section-card">
                         {userInfo.linkedBanks.length > 0 ? (
                             <div className="linked-banks-list">
@@ -146,7 +192,7 @@ export default function Profile({ onLogout, onBack }) {
                                         </div>
                                         <div className="bank-info">
                                             <span className="bank-name">{bankNames[bankId] || bankId}</span>
-                                            <span className="bank-status">Connected</span>
+                                            <span className="bank-status">{t('profile.connected')}</span>
                                         </div>
                                         <div className="bank-check">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -158,7 +204,7 @@ export default function Profile({ onLogout, onBack }) {
                             </div>
                         ) : (
                             <div className="empty-banks">
-                                <p>No banks linked yet</p>
+                                <p>{t('profile.noBanksLinked')}</p>
                             </div>
                         )}
                     </div>
@@ -171,8 +217,23 @@ export default function Profile({ onLogout, onBack }) {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.3 }}
                 >
-                    <h3 className="section-title">Settings</h3>
+                    <h3 className="section-title">{t('profile.settings')}</h3>
                     <div className="section-card">
+                        {/* Language Selector */}
+                        <button className="settings-row" onClick={() => setShowLanguageModal(true)}>
+                            <div className="settings-icon language-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="10" stroke="#047857" strokeWidth="2"/>
+                                    <path d="M2 12H22" stroke="#047857" strokeWidth="2"/>
+                                    <path d="M12 2C14.5 4.5 15.5 8 15.5 12C15.5 16 14.5 19.5 12 22C9.5 19.5 8.5 16 8.5 12C8.5 8 9.5 4.5 12 2Z" stroke="#047857" strokeWidth="2"/>
+                                </svg>
+                            </div>
+                            <span className="settings-label">{t('profile.language')}</span>
+                            <span className="settings-value">{language === 'hi' ? 'हिंदी' : 'English'}</span>
+                            <svg className="settings-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 18L15 12L9 6" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
                         <button className="settings-row">
                             <div className="settings-icon">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -180,7 +241,7 @@ export default function Profile({ onLogout, onBack }) {
                                     <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </div>
-                            <span className="settings-label">Notifications</span>
+                            <span className="settings-label">{t('profile.notifications')}</span>
                             <svg className="settings-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
                                 <path d="M9 18L15 12L9 6" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -191,7 +252,7 @@ export default function Profile({ onLogout, onBack }) {
                                     <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </div>
-                            <span className="settings-label">Privacy & Security</span>
+                            <span className="settings-label">{t('profile.privacySecurity')}</span>
                             <svg className="settings-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
                                 <path d="M9 18L15 12L9 6" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -203,7 +264,7 @@ export default function Profile({ onLogout, onBack }) {
                                     <path d="M19.4 15C19.2 15.3 19.1 15.7 19.2 16L19.8 18.1C19.9 18.5 19.7 18.9 19.3 19.1L17.3 20.3C17 20.5 16.6 20.5 16.3 20.2L14.6 18.8C14.4 18.6 14 18.6 13.7 18.8L12 20C11.7 20.2 11.3 20.2 11 20L9.3 18.8C9 18.6 8.6 18.6 8.4 18.8L6.7 20.2C6.4 20.5 6 20.5 5.7 20.3L3.7 19.1C3.3 18.9 3.1 18.5 3.2 18.1L3.8 16C3.9 15.7 3.8 15.3 3.6 15L2 13.7C1.7 13.4 1.7 13 2 12.7L3.6 11C3.8 10.7 3.9 10.3 3.8 10L3.2 7.9C3.1 7.5 3.3 7.1 3.7 6.9L5.7 5.7C6 5.5 6.4 5.5 6.7 5.8L8.4 7.2C8.6 7.4 9 7.4 9.3 7.2L11 6C11.3 5.8 11.7 5.8 12 6L13.7 7.2C14 7.4 14.4 7.4 14.6 7.2L16.3 5.8C16.6 5.5 17 5.5 17.3 5.7L19.3 6.9C19.7 7.1 19.9 7.5 19.8 7.9L19.2 10C19.1 10.3 19.2 10.7 19.4 11L21 12.3C21.3 12.6 21.3 13 21 13.3L19.4 15Z" stroke="#6B7280" strokeWidth="2" />
                                 </svg>
                             </div>
-                            <span className="settings-label">App Preferences</span>
+                            <span className="settings-label">{t('profile.appPreferences')}</span>
                             <svg className="settings-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
                                 <path d="M9 18L15 12L9 6" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -215,7 +276,7 @@ export default function Profile({ onLogout, onBack }) {
                                     <path d="M12 16V12M12 8H12.01" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
                             </div>
-                            <span className="settings-label">Help & Support</span>
+                            <span className="settings-label">{t('profile.helpSupport')}</span>
                             <svg className="settings-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none">
                                 <path d="M9 18L15 12L9 6" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -231,8 +292,8 @@ export default function Profile({ onLogout, onBack }) {
                     transition={{ delay: 0.5, duration: 0.3 }}
                 >
                     <div className="app-info">
-                        <span className="app-version">FinKar v1.0.0</span>
-                        <span className="app-copyright">© 2025 FinKar. All rights reserved.</span>
+                        <span className="app-version">{t('profile.appVersion')}</span>
+                        <span className="app-copyright">{t('profile.copyright')}</span>
                     </div>
                 </motion.section>
 
@@ -249,7 +310,7 @@ export default function Profile({ onLogout, onBack }) {
                             <path d="M16 17L21 12L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             <path d="M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        Logout
+                        {t('profile.logout')}
                     </button>
                 </motion.div>
             </div>

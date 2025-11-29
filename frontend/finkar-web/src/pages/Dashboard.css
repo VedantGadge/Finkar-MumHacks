@@ -3,7 +3,8 @@
     min-height: 100vh;
     background: #F9FAFB;
     color: #1F2937;
-    padding: 20px 0 100px; /* horizontal padding handled by .page-container */
+    padding: 20px 0 100px;
+    /* horizontal padding handled by .page-container */
     font-family: 'DM Sans';
     position: relative;
     overflow-y: auto;
@@ -184,13 +185,19 @@
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -6px; /* even closer to the box */
-    height: 14px; /* thinner for a sharper edge */
-    background: rgba(4, 120, 87, 0.4); /* match tooltip color */
-    filter: blur(7px); /* crisper */
+    bottom: -6px;
+    /* even closer to the box */
+    height: 14px;
+    /* thinner for a sharper edge */
+    background: rgba(4, 120, 87, 0.4);
+    /* match tooltip color */
+    filter: blur(7px);
+    /* crisper */
     transform: rotate(-4deg);
-    border-radius: 999px; /* ellipse */
-    z-index: -1; /* sit behind the tooltip */
+    border-radius: 999px;
+    /* ellipse */
+    z-index: -1;
+    /* sit behind the tooltip */
 }
 
 /* Make the text truly take full width */
@@ -459,47 +466,56 @@
 .nav-indicator {
     position: absolute;
     width: calc((100% - (var(--page-h-padding) * 2)) / 5);
-    height: 44px; /* smaller, less dominant */
-    background: rgba(4,120,87,0.10); /* subtle tint */
-    border: 1px solid rgba(4,120,87,0.12);
+    height: 44px;
+    /* smaller, less dominant */
+    background: rgba(4, 120, 87, 0.10);
+    /* subtle tint */
+    border: 1px solid rgba(4, 120, 87, 0.12);
     border-radius: 12px;
     z-index: 1;
-    box-shadow: 0 8px 18px rgba(4,120,87,0.06); /* softer shadow */
+    box-shadow: 0 8px 18px rgba(4, 120, 87, 0.06);
+    /* softer shadow */
     left: var(--page-h-padding);
 }
 
 .nav-item {
     background: transparent;
     border: none;
-    color: #9CA3AF; /* muted by default */
+    color: #9CA3AF;
+    /* muted by default */
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    padding: 8px 6px; /* tighter */
+    padding: 8px 6px;
+    /* tighter */
     transition: color 0.18s, transform 0.18s;
     flex: 1;
     position: relative;
     z-index: 2;
-    height: 48px; /* smaller touch area but still usable */
+    height: 48px;
+    /* smaller touch area but still usable */
 }
 
 .nav-item svg,
 .nav-item .nav-icon {
-    width: 22px; /* smaller, more subtle */
+    width: 22px;
+    /* smaller, more subtle */
     height: 22px;
     transition: transform 0.18s, color 0.18s;
 }
 
 .nav-item:hover svg,
 .nav-item:hover .nav-icon {
-    transform: scale(1.06); /* gentle hover */
+    transform: scale(1.06);
+    /* gentle hover */
 }
 
 .nav-item.active {
-    color: #047857; /* toned, dark green for active icons */
+    color: #047857;
+    /* toned, dark green for active icons */
 }
 
 /* Responsive Design */
@@ -524,4 +540,101 @@
         width: 140px;
         height: 140px;
     }
+}
+
+/* Updated Learning Section Styles */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.section-header h2 svg {
+    color: #047857;
+}
+
+.view-all-btn {
+    background: transparent;
+    border: none;
+    color: #047857;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.view-all-btn:hover {
+    background: #ECFDF5;
+}
+
+.learning-progress-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.progress-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.progress-stats-row {
+    display: flex;
+    gap: 24px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1F2937;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6B7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.continue-learning-btn {
+    width: 100%;
+    background: #047857;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.continue-learning-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.2);
 }
