@@ -182,26 +182,32 @@ function Dashboard({ onLogout }) {
     }, [loans, creditCards]);
 
     // Calculate spending by category for pie chart
-    const spendingByCategory = useMemo(() => {
+    const spendingData = useMemo(() => {
         const expenses = transactions.filter(t => t.type === 'expense');
         const categoryTotals = {};
+        let totalExpenses = 0;
 
         expenses.forEach(txn => {
             const category = txn.category || 'Other';
-            categoryTotals[category] = (categoryTotals[category] || 0) + parseFloat(txn.amount || 0);
+            const amount = parseFloat(txn.amount || 0);
+            categoryTotals[category] = (categoryTotals[category] || 0) + amount;
+            totalExpenses += amount;
         });
 
         // Convert to array and sort by amount
-        const categoriesArray = Object.entries(categoryTotals)
+        let categoriesArray = Object.entries(categoryTotals)
             .map(([name, amount]) => ({ name, amount }))
             .sort((a, b) => b.amount - a.amount);
 
-        // Get top 3 categories
-        const top3 = categoriesArray.slice(0, 3);
-        const totalExpenses = top3.reduce((sum, cat) => sum + cat.amount, 0);
+        // If more than 4 categories, group the rest into "Others"
+        if (categoriesArray.length > 4) {
+            const top4 = categoriesArray.slice(0, 4);
+            const othersAmount = categoriesArray.slice(4).reduce((sum, cat) => sum + cat.amount, 0);
+            categoriesArray = [...top4, { name: 'Others', amount: othersAmount }];
+        }
 
         // Calculate percentages
-        const categoriesWithPercent = top3.map(cat => ({
+        const categoriesWithPercent = categoriesArray.map(cat => ({
             ...cat,
             percent: totalExpenses > 0 ? (cat.amount / totalExpenses) * 100 : 0
         }));
@@ -268,8 +274,8 @@ function Dashboard({ onLogout }) {
             {/* Header */}
             <div className="dashboard-header">
                 <div className="header-content">
-                    <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>Welcome Back</motion.h2>
-                    <motion.p className="header-name" initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45, delay: 0.06 }}>Welcome, Vedant</motion.p>
+                    <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>Hello, Vedant</motion.h2>
+                    <motion.p className="header-name" initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45, delay: 0.06 }}>Welcome back</motion.p>
                 </div>
                 <motion.button
                     className="profile-button"
@@ -310,12 +316,6 @@ function Dashboard({ onLogout }) {
                 onTrackGoal={() => setActiveTab(1)}
             />
 
-            {/* Upcoming Obligations */}
-            <UpcomingObligations obligations={upcomingObligations} />
-
-            {/* Recent Activity */}
-            <RecentActivity transactions={transactions} />
-
             {/* Spendings Section */}
             <section className="spendings-section">
                 <motion.h2 initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>Your Spendings</motion.h2>
@@ -323,15 +323,15 @@ function Dashboard({ onLogout }) {
                     <div className="chart-section">
                         <div className="chart-container">
                             <svg viewBox="0 0 200 200" className="pie-chart">
-                                {spendingByCategory.length > 0 ? (
+                                {spendingData.length > 0 ? (
                                     <>
-                                        {spendingByCategory.map((category, index) => {
+                                        {spendingData.map((category, index) => {
                                             const radius = 80;
                                             const circumference = 2 * Math.PI * radius;
                                             const percent = category.percent / 100;
 
                                             // Calculate offset based on previous segments
-                                            const previousPercents = spendingByCategory
+                                            const previousPercents = spendingData
                                                 .slice(0, index)
                                                 .reduce((sum, cat) => sum + (cat.percent / 100), 0);
                                             const offset = -(circumference * previousPercents);
@@ -370,8 +370,8 @@ function Dashboard({ onLogout }) {
 
                         {/* Legend - Vertical on the right */}
                         <div className="legend">
-                            {spendingByCategory.length > 0 ? (
-                                spendingByCategory.map((category, index) => (
+                            {spendingData.length > 0 ? (
+                                spendingData.map((category, index) => (
                                     <motion.div
                                         key={category.name}
                                         className="legend-item"
@@ -407,6 +407,9 @@ function Dashboard({ onLogout }) {
                 </div>
             </section>
 
+            {/* Upcoming Obligations */}
+            <UpcomingObligations obligations={upcomingObligations} />
+
             {/* Checklist Section */}
             <section className="checklist-section">
                 <div className="checklist-header">
@@ -441,17 +444,49 @@ function Dashboard({ onLogout }) {
 
             {/* Learning Section */}
             <section className="learning-section">
-                <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>Learning</motion.h2>
-                <motion.div className="learning-card" initial={{ y: 18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.06 }}>
-                    <div className="course-info">
-                        <motion.h3 initial={{ x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.08 }}>Master investing</motion.h3>
-                        <motion.button className="continue-btn" initial={{ x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.12 }}>Continue Learning</motion.button>
-                    </div>
-                    <motion.div className="instructor-image" initial={{ x: 12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.12 }}>
-                        <div className="instructor-placeholder">
-                            <div className="instructor-label">Gate<br />Smashers</div>
+                <div className="section-header">
+                    <motion.h2 initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.45 }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                        </svg>
+                        Financial Mastery
+                    </motion.h2>
+                    <motion.button
+                        className="view-all-btn"
+                        onClick={() => setActiveTab(3)}
+                        initial={{ x: 12, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.06 }}
+                    >
+                        View All →
+                    </motion.button>
+                </div>
+                <motion.div
+                    className="learning-progress-card"
+                    initial={{ y: 18, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.08 }}
+                >
+                    <div className="progress-info">
+                        <div className="progress-stats-row">
+                            <div className="stat-item">
+                                <span className="stat-value">9</span>
+                                <span className="stat-label">Modules</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-value">22</span>
+                                <span className="stat-label">Lessons</span>
+                            </div>
                         </div>
-                    </motion.div>
+                        <motion.button
+                            className="continue-learning-btn"
+                            onClick={() => setActiveTab(3)}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            Continue Learning
+                        </motion.button>
+                    </div>
                 </motion.div>
             </section>
         </>
