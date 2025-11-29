@@ -21,6 +21,7 @@ import RecentActivity from '../components/dashboard/RecentActivity';
 import GoalsOverview from '../components/dashboard/GoalsOverview';
 import BudgetOverview from '../components/dashboard/BudgetOverview';
 import Toast, { useToast, InputDialog } from '../components/common/Toast';
+import BillScanner from '../components/common/BillScanner';
 
 function Dashboard({ onLogout }) {
     const { t } = useLanguage();
@@ -45,6 +46,7 @@ function Dashboard({ onLogout }) {
     // Toast and Dialog states
     const { toast, showToast, hideToast } = useToast();
     const [showInputDialog, setShowInputDialog] = useState(false);
+    const [showBillScanner, setShowBillScanner] = useState(false);
 
     // Trigger squish effect when tab changes
     useEffect(() => {
@@ -306,7 +308,7 @@ function Dashboard({ onLogout }) {
             {/* Quick Actions */}
             <QuickActions
                 onAddTransaction={() => setActiveTab(1)}
-                onPayBill={() => showToast('Pay Bill feature coming soon!', 'info')}
+                onPayBill={() => setShowBillScanner(true)}
                 onTrackGoal={() => setActiveTab(1)}
                 onAskAI={() => setActiveTab(2)}
             />
@@ -518,6 +520,29 @@ function Dashboard({ onLogout }) {
                 onCancel={() => setShowInputDialog(false)}
                 confirmText="Add"
                 cancelText="Cancel"
+            />
+
+            {/* Bill Scanner Modal */}
+            <BillScanner
+                isOpen={showBillScanner}
+                onClose={() => setShowBillScanner(false)}
+                onSuccess={(result) => {
+                    // Refresh transactions after successful scan
+                    const userId = localStorage.getItem('finkar_user_id') || 1;
+                    fetchTransactions(userId).then(transactionsData => {
+                        const transactionsArray = transactionsData.transactions || [];
+                        const mappedTransactions = transactionsArray.map(txn => ({
+                            id: txn.id,
+                            date: txn.transaction_date,
+                            desc: txn.narration,
+                            type: txn.type === 'CREDIT' ? 'income' : 'expense',
+                            amount: txn.amount.toString(),
+                            category: txn.category
+                        }));
+                        setTransactions(mappedTransactions);
+                    }).catch(console.error);
+                    showToast(`Bill scanned! ₹${result.extracted_data?.amount} expense saved.`, 'success');
+                }}
             />
 
             {activeTab === 0 && renderHome()}
