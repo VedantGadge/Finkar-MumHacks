@@ -1,4 +1,5 @@
 // Goals API Service
+// Using HuggingFace backend for goals as Vercel backend doesn't have goals endpoints
 const API_BASE_URL = "https://lamaq-finkar-backend-teamayu.hf.space/api";
 
 /**
@@ -54,6 +55,32 @@ export const createGoal = async (userId, name, targetAmount, targetDate) => {
     return await response.json();
   } catch (error) {
     console.error("Error creating goal:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a goal
+ * @param {number} goalId - Goal ID
+ * @param {number} userId - User ID
+ * @returns {Promise<Object>} Deletion response
+ */
+export const deleteGoal = async (goalId, userId) => {
+  try {
+    const url = new URL(`${API_BASE_URL}/goals/${goalId}`);
+    url.searchParams.append("user_id", userId);
+
+    const response = await fetch(url, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete goal");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error deleting goal:", error);
     throw error;
   }
 };

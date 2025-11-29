@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
 import { sendMessage } from '../services/chatService';
 import { translateHindiToEnglish, containsHindi } from '../services/translationService';
 import './Chatbot.css';
@@ -8,15 +9,34 @@ import './Chatbot.css';
 const SESSION_ID = "default-session";
 const PHONE_NUMBER = "9876543210";
 
+const STORAGE_KEY = 'finkar_chatbot_messages';
+
 const Chatbot = () => {
-    const [messages, setMessages] = useState([
-        {
-            id: 1,
-            text: "Hello! I'm your AI financial assistant. How can I help you today?",
-            sender: "ai",
-            timestamp: new Date()
+    // Load messages from localStorage or use default greeting
+    const [messages, setMessages] = useState(() => {
+        try {
+            const savedMessages = localStorage.getItem(STORAGE_KEY);
+            if (savedMessages) {
+                const parsed = JSON.parse(savedMessages);
+                // Convert timestamp strings back to Date objects
+                return parsed.map(msg => ({
+                    ...msg,
+                    timestamp: new Date(msg.timestamp)
+                }));
+            }
+        } catch (error) {
+            console.error('Failed to load chat history:', error);
         }
-    ]);
+        // Default greeting message
+        return [
+            {
+                id: 1,
+                text: "Hello! I'm your AI financial assistant. How can I help you today?",
+                sender: "ai",
+                timestamp: new Date()
+            }
+        ];
+    });
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -43,6 +63,15 @@ const Chatbot = () => {
         scrollToBottom();
     }, [messages, isLoading]);
 
+    // Save messages to localStorage whenever they change
+    useEffect(() => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        } catch (error) {
+            console.error('Failed to save chat history:', error);
+        }
+    }, [messages]);
+
     // Initialize speech recognition with multi-language support
     useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -57,7 +86,7 @@ const Chatbot = () => {
 
             recognitionRef.current.onresult = async (event) => {
                 const transcript = event.results[event.results.length - 1][0].transcript;
-                
+
                 if (event.results[event.results.length - 1].isFinal) {
                     // Auto-detect Hindi and translate to English
                     if (containsHindi(transcript)) {
@@ -261,7 +290,61 @@ const Chatbot = () => {
                             </div>
                             <div>
                                 <div className="message-bubble">
-                                    {message.text}
+                                    {message.sender === 'ai' ? (
+                                        <ReactMarkdown
+                                            components={{
+                                                table: ({ node, ...props }) => (
+                                                    <table style={{
+                                                        borderCollapse: 'collapse',
+                                                        width: '100%',
+                                                        marginTop: '8px',
+                                                        marginBottom: '8px',
+                                                        fontSize: '13px'
+                                                    }} {...props} />
+                                                ),
+                                                th: ({ node, ...props }) => (
+                                                    <th style={{
+                                                        border: '1px solid #E5E7EB',
+                                                        padding: '8px',
+                                                        backgroundColor: '#F3F4F6',
+                                                        textAlign: 'left',
+                                                        fontWeight: '600'
+                                                    }} {...props} />
+                                                ),
+                                                td: ({ node, ...props }) => (
+                                                    <td style={{
+                                                        border: '1px solid #E5E7EB',
+                                                        padding: '8px'
+                                                    }} {...props} />
+                                                ),
+                                                code: ({ node, inline, ...props }) => (
+                                                    inline ?
+                                                        <code style={{
+                                                            backgroundColor: '#F3F4F6',
+                                                            padding: '2px 6px',
+                                                            borderRadius: '4px',
+                                                            fontSize: '13px',
+                                                            fontFamily: 'monospace'
+                                                        }} {...props} /> :
+                                                        <code style={{
+                                                            display: 'block',
+                                                            backgroundColor: '#F3F4F6',
+                                                            padding: '12px',
+                                                            borderRadius: '6px',
+                                                            fontSize: '13px',
+                                                            fontFamily: 'monospace',
+                                                            overflowX: 'auto',
+                                                            marginTop: '8px',
+                                                            marginBottom: '8px'
+                                                        }} {...props} />
+                                                )
+                                            }}
+                                        >
+                                            {message.text}
+                                        </ReactMarkdown>
+                                    ) : (
+                                        message.text
+                                    )}
                                 </div>
                                 <div className="message-time">
                                     {formatTime(message.timestamp)}

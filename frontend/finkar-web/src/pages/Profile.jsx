@@ -20,6 +20,8 @@ export default function Profile({ onLogout, onBack }) {
         localStorage.removeItem('finkar_logged_in');
         localStorage.removeItem('finkar_phone');
         localStorage.removeItem('finkar_banks');
+        localStorage.removeItem('finkar_user_id'); // Clear user ID
+        localStorage.removeItem('finkar_chatbot_messages'); // Clear chat history
 
         if (onLogout) {
             onLogout();

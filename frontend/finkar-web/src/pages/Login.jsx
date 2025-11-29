@@ -585,7 +585,11 @@ export default function Login({ onLoginSuccess }) {
         setError('');
 
         try {
-            await approveConsent(phoneNumber, selectedBanks);
+            const response = await approveConsent(phoneNumber, selectedBanks);
+            // Store user_id from response (API returns user_id on successful consent)
+            if (response && response.user_id) {
+                localStorage.setItem('finkar_user_id', response.user_id.toString());
+            }
             setStep(5);
         } catch (err) {
             setError('Failed to approve consent. Please try again.');

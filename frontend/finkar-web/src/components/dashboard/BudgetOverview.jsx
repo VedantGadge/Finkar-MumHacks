@@ -22,8 +22,10 @@ const BudgetOverview = ({ budget, onManageBudget }) => {
         );
     }
 
-    const percentUsed = Math.min((budget.total_spent / budget.total_budget) * 100, 100);
-    const isOver = budget.overall_status === 'over';
+    const totalSpent = budget.total_spent || budget.spent || 0;
+    const totalBudget = budget.total_budget || budget.budget || 0;
+    const percentUsed = totalBudget > 0 ? Math.min((totalSpent / totalBudget) * 100, 100) : 0;
+    const isOver = budget.overall_status === 'over' || totalSpent > totalBudget;
 
     return (
         <motion.section
@@ -46,8 +48,8 @@ const BudgetOverview = ({ budget, onManageBudget }) => {
                 </div>
 
                 <div className="budget-values">
-                    <span className="spent-value">₹{budget.total_spent.toLocaleString()}</span>
-                    <span className="total-value">of ₹{budget.total_budget.toLocaleString()}</span>
+                    <span className="spent-value">₹{totalSpent.toLocaleString()}</span>
+                    <span className="total-value">of ₹{totalBudget.toLocaleString()}</span>
                 </div>
 
                 <div className="budget-progress-bg">
@@ -62,7 +64,7 @@ const BudgetOverview = ({ budget, onManageBudget }) => {
 
                 <div className="budget-footer">
                     <span>{percentUsed.toFixed(0)}% used</span>
-                    <span>₹{(budget.total_budget - budget.total_spent).toLocaleString()} left</span>
+                    <span>₹{(totalBudget - totalSpent).toLocaleString()} left</span>
                 </div>
             </div>
         </motion.section>

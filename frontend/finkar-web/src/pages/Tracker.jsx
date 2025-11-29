@@ -1,9 +1,9 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createBudget, updateBudget, deleteBudget } from '../services/budgetService';
+import { createBudget, updateBudget, deleteBudget, getCurrentUserId } from '../services/budgetService';
 import { fetchLiabilities } from '../services/liabilitiesService';
-import { fetchGoals, createGoal } from '../services/goalsService';
+import { fetchGoals, createGoal, deleteGoal } from '../services/goalsService';
 import { createManualTransaction, fetchTransactions } from '../services/transactionsService';
 import './Tracker.css';
 import TransactionsCard from '../components/tracker/TransactionsCard';
@@ -69,7 +69,8 @@ function Tracker() {
         const loadLiabilities = async () => {
             try {
                 setLiabilitiesLoading(true);
-                const data = await fetchLiabilities(1); // user_id hardcoded as 1
+                const userId = getCurrentUserId();
+                const data = await fetchLiabilities(userId);
 
                 // Map loans data from API to component format (with defensive check)
                 const mappedLoans = (data.loans || []).map(loan => ({
@@ -110,20 +111,27 @@ function Tracker() {
         const loadGoals = async () => {
             try {
                 setGoalsLoading(true);
-                const data = await fetchGoals(1); // user_id hardcoded as 1
+                const userId = getCurrentUserId();
+                const data = await fetchGoals(userId);
 
                 // Handle both array and object responses
                 const goalsArray = Array.isArray(data) ? data : (data.goals || []);
 
                 // Map goals data from API to component format
-                const mappedGoals = goalsArray.map(goal => ({
-                    id: goal.id,
-                    name: goal.name,
-                    target: goal.target,
-                    current: goal.saved || 0,
-                    date: goal.deadline,
-                    percent: goal.percent || 0
-                }));
+                const mappedGoals = goalsArray.map(goal => {
+                    const current = goal.current_amount || 0;
+                    const target = goal.target_amount || 1;
+                    const percent = goal.progress_percent || (target > 0 ? (current / target) * 100 : 0);
+
+                    return {
+                        id: goal.id,
+                        name: goal.name,
+                        target: goal.target_amount,
+                        current: current,
+                        date: goal.target_date,
+                        percent: percent
+                    };
+                });
 
                 setGoals(mappedGoals);
                 setGoalsError(null);
@@ -143,7 +151,8 @@ function Tracker() {
         const loadTransactions = async () => {
             try {
                 setTransactionsLoading(true);
-                const data = await fetchTransactions(1); // user_id hardcoded as 1
+                const userId = getCurrentUserId();
+                const data = await fetchTransactions(userId);
 
                 // Map transactions data from API to component format (with defensive check)
                 const transactionsArray = data.transactions || [];
@@ -527,15 +536,58 @@ function Tracker() {
                                                 onClick={async () => {
                                                     if (window.confirm(`Are you sure you want to delete the budget for "${selectedItem.category}"?`)) {
                                                         try {
+                                                            const userId = getCurrentUserId();
                                                             await deleteBudget(
                                                                 selectedItem.category,
-                                                                1, // user_id hardcoded as 1
+                                                                userId,
                                                                 selectedItem.month
                                                             );
                                                             alert('Budget deleted successfully! The page will refresh.');
                                                             window.location.reload();
                                                         } catch (err) {
                                                             alert('Failed to delete budget: ' + err.message);
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                Delete
+                                            </button>
+                                        )}
+                                        {expandedCard === 'goals' && selectedItem.id && (
+                                            <button
+                                                className="cancel-btn-modal"
+                                                style={{
+                                                    backgroundColor: '#EF4444',
+                                                    color: 'white',
+                                                    marginRight: 'auto'
+                                                }}
+                                                onClick={async () => {
+                                                    if (window.confirm(`Are you sure you want to delete the goal "${selectedItem.name}"?`)) {
+                                                        try {
+                                                            const userId = getCurrentUserId();
+                                                            await deleteGoal(selectedItem.id, userId);
+                                                            alert('Goal deleted successfully! Refreshing goals...');
+                                                            // Refresh goals list
+                                                            const data = await fetchGoals(userId);
+                                                            const goalsArray = Array.isArray(data) ? data : (data.goals || []);
+                                                            const mappedGoals = goalsArray.map(goal => {
+                                                                const current = goal.current_amount || 0;
+                                                                const target = goal.target_amount || 1;
+                                                                const percent = goal.progress_percent || (target > 0 ? (current / target) * 100 : 0);
+
+                                                                return {
+                                                                    id: goal.id,
+                                                                    name: goal.name,
+                                                                    target: goal.target_amount,
+                                                                    current: current,
+                                                                    date: goal.target_date,
+                                                                    percent: percent
+                                                                };
+                                                            });
+                                                            setGoals(mappedGoals);
+                                                            closeModal();
+                                                        } catch (err) {
+                                                            alert('Failed to delete goal: ' + err.message);
                                                         }
                                                     }
                                                 }}
@@ -553,8 +605,9 @@ function Tracker() {
                                                     // Creating new transaction - call API
                                                     const handleCreateTransaction = async () => {
                                                         try {
+                                                            const userId = getCurrentUserId();
                                                             await createManualTransaction(
-                                                                1, // user_id hardcoded as 1
+                                                                userId,
                                                                 parseFloat(selectedItem.amount),
                                                                 selectedItem.category,
                                                                 selectedItem.desc || '', // narration
@@ -562,7 +615,7 @@ function Tracker() {
                                                             );
 
                                                             // Refresh transactions list from API
-                                                            const data = await fetchTransactions(1);
+                                                            const data = await fetchTransactions(userId);
                                                             const mappedTransactions = data.transactions.map(txn => ({
                                                                 id: txn.id,
                                                                 date: txn.transaction_date,
@@ -585,8 +638,9 @@ function Tracker() {
                                                     // Editing existing budget - call PUT API
                                                     const handleUpdateBudget = async () => {
                                                         try {
+                                                            const userId = getCurrentUserId();
                                                             await updateBudget(
-                                                                1, // user_id hardcoded as 1
+                                                                userId,
                                                                 selectedItem.category,
                                                                 parseFloat(selectedItem.limit || selectedItem.amount),
                                                                 selectedItem.month
@@ -622,8 +676,9 @@ function Tracker() {
                                                                 }
                                                             }
 
+                                                            const userId = getCurrentUserId();
                                                             await createBudget(
-                                                                1, // user_id hardcoded as 1
+                                                                userId,
                                                                 selectedItem.category,
                                                                 parseFloat(selectedItem.limit || selectedItem.amount),
                                                                 monthFormatted
@@ -656,8 +711,9 @@ function Tracker() {
                                                     // Creating new goal - call API via service
                                                     const handleCreateGoal = async () => {
                                                         try {
+                                                            const userId = getCurrentUserId();
                                                             await createGoal(
-                                                                1, // user_id hardcoded as 1
+                                                                userId,
                                                                 selectedItem.name,
                                                                 parseFloat(selectedItem.target),
                                                                 selectedItem.date
@@ -665,15 +721,22 @@ function Tracker() {
 
                                                             alert('Goal created successfully! Refreshing goals...');
                                                             // Refresh goals list
-                                                            const data = await fetchGoals(1);
-                                                            const mappedGoals = data.map(goal => ({
-                                                                id: goal.id,
-                                                                name: goal.name,
-                                                                target: goal.target,
-                                                                current: goal.saved || 0,
-                                                                date: goal.deadline,
-                                                                percent: goal.percent || 0
-                                                            }));
+                                                            const data = await fetchGoals(userId);
+                                                            const goalsArray = Array.isArray(data) ? data : (data.goals || []);
+                                                            const mappedGoals = goalsArray.map(goal => {
+                                                                const current = goal.current_amount || 0;
+                                                                const target = goal.target_amount || 1;
+                                                                const percent = goal.progress_percent || (target > 0 ? (current / target) * 100 : 0);
+
+                                                                return {
+                                                                    id: goal.id,
+                                                                    name: goal.name,
+                                                                    target: goal.target_amount,
+                                                                    current: current,
+                                                                    date: goal.target_date,
+                                                                    percent: percent
+                                                                };
+                                                            });
                                                             setGoals(mappedGoals);
                                                         } catch (err) {
                                                             alert('Failed to create goal: ' + err.message);

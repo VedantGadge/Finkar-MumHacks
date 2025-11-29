@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { fetchBudgets } from '../../services/budgetService';
+import { fetchBudgets, getCurrentUserId } from '../../services/budgetService';
 
 const BudgetCard = ({ onEdit }) => {
     const [budgetData, setBudgetData] = useState(null);
@@ -10,7 +10,8 @@ const BudgetCard = ({ onEdit }) => {
     const loadBudgets = async () => {
         try {
             setLoading(true);
-            const data = await fetchBudgets(1); // user_id hardcoded as 1
+            const userId = getCurrentUserId();
+            const data = await fetchBudgets(userId);
             setBudgetData(data);
             setError(null);
         } catch (err) {

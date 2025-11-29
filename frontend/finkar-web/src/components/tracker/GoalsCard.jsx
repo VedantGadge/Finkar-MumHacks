@@ -49,7 +49,7 @@ const GoalsCard = ({ goals, onEdit }) => {
                     <div className="progress-bar-bg">
                         <div className="progress-bar-fill" style={{ width: `${g.percent}%`, background: '#EC4899' }}></div>
                     </div>
-                    <div className="module-sub">Target: ₹{(g.target || 0).toLocaleString()} by {formatDate(g.date)}</div>
+                    <div className="module-sub">₹{(g.current || 0).toLocaleString()} / ₹{(g.target || 0).toLocaleString()} by {formatDate(g.date)}</div>
                 </motion.div>
             ))}
         </div>

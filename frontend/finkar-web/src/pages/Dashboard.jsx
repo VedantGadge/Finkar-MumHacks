@@ -73,14 +73,21 @@ function Dashboard({ onLogout }) {
 
                 // Map goals
                 const goalsArray = Array.isArray(goalsData) ? goalsData : (goalsData.goals || []);
-                const mappedGoals = goalsArray.map(goal => ({
-                    id: goal.id,
-                    name: goal.name,
-                    target: goal.target,
-                    current: goal.saved || 0,
-                    date: goal.deadline,
-                    percent: goal.percent || 0
-                }));
+                const mappedGoals = goalsArray.map(goal => {
+                    const current = goal.current_amount || 0;
+                    const target = goal.target_amount || 1; // Avoid division by zero
+                    // Use API's progress_percent if available, otherwise calculate it
+                    const percent = goal.progress_percent || (target > 0 ? (current / target) * 100 : 0);
+
+                    return {
+                        id: goal.id,
+                        name: goal.name,
+                        target: goal.target_amount,
+                        current: current,
+                        date: goal.target_date,
+                        percent: percent
+                    };
+                });
 
                 // Map budgets
                 // Budget API returns a summary object, not an array
