@@ -244,7 +244,7 @@ const BillScanner = ({ isOpen, onClose, onSuccess }) => {
                 >
                     {/* Header */}
                     <div className="scanner-header">
-                        <h2>📄 Scan Bill</h2>
+                        <h2>Add Bill</h2>
                         <button className="close-btn" onClick={handleClose}>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -350,7 +350,7 @@ const BillScanner = ({ isOpen, onClose, onSuccess }) => {
                                 {!cameraActive && !capturedImage && !isProcessing && (
                                     <div className="options-container">
                                         <p className="options-title">Choose how to capture your bill</p>
-                                        
+
                                         <button className="option-btn camera-option" onClick={handleCameraClick}>
                                             <div className="option-icon">
                                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

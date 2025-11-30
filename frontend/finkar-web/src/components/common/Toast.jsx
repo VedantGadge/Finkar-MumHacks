@@ -17,29 +17,29 @@ const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000 
             case 'success':
                 return (
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" fill="#10B981" />
-                        <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="12" cy="12" r="10" fill="#ECFDF5" />
+                        <path d="M8 12L11 15L16 9" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 );
             case 'error':
                 return (
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" fill="#EF4444" />
-                        <path d="M15 9L9 15M9 9L15 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="12" cy="12" r="10" fill="#FEF2F2" />
+                        <path d="M15 9L9 15M9 9L15 15" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 );
             case 'warning':
                 return (
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 2L2 22H22L12 2Z" fill="#F59E0B" />
-                        <path d="M12 9V13M12 17H12.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12 2L2 22H22L12 2Z" fill="#FFFBEB" />
+                        <path d="M12 9V13M12 17H12.01" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 );
             case 'info':
                 return (
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" fill="#3B82F6" />
-                        <path d="M12 16V12M12 8H12.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="12" cy="12" r="10" fill="#EFF6FF" />
+                        <path d="M12 16V12M12 8H12.01" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 );
             default:
@@ -182,8 +182,8 @@ export const InputDialog = ({ isVisible, title, placeholder, onConfirm, onCancel
                             <button className="confirm-btn cancel" onClick={handleCancel}>
                                 {cancelText}
                             </button>
-                            <button 
-                                className="confirm-btn primary" 
+                            <button
+                                className="confirm-btn primary"
                                 onClick={handleSubmit}
                                 disabled={!inputValue.trim()}
                             >
