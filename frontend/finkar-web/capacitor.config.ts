@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.example.app',
-  appName: 'finkar-web',
+  appName: 'FinKar',
   webDir: 'build'
 };
 
