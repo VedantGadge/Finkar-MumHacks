@@ -47,7 +47,7 @@ export const generateCaseStudy = async (
   try {
     const requestBody = {
       ticker,
-      company_name: "string",
+      company_name: companyName || getTickerDisplayName(ticker),
       use_finbert: true,
       use_groq: true,
     };

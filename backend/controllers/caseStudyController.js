@@ -16,7 +16,7 @@ const generateCaseStudy = async (req, res) => {
 
     const requestBody = {
       ticker,
-      company_name: "string",
+      company_name,
       use_finbert: true,
       use_groq: true,
     };
