@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
+import { awardFinkirks } from '../services/userService';
 import './Learning.css';
 
 // Learning Data - All 9 Modules
@@ -682,6 +683,12 @@ const Learning = () => {
                 ...progress,
                 completedLessons: [...progress.completedLessons, lessonId]
             });
+
+            // Gamification: Award Finkirks
+            const username = localStorage.getItem('finkar_username') || 'Vedant';
+            awardFinkirks(username, 50, `Completed lesson: ${lessonId}`)
+                .then(u => alert(`Congratulations! You earned 50 Finkirks! New Balance: ${u.finkirkBalance}`))
+                .catch(e => console.error("Failed to award finkirks", e));
         }
     };
 
@@ -701,22 +708,22 @@ const Learning = () => {
 
         lesson.content.sections.forEach((section) => {
             content += `${section.title}\n${'-'.repeat(section.title.length)}\n\n`;
-            
+
             if (section.text) {
                 content += `${section.text}\n\n`;
             }
-            
+
             if (section.highlight) {
                 content += `► KEY INSIGHT:\n${section.highlight}\n\n`;
             }
-            
+
             if (section.list) {
                 section.list.forEach((item, i) => {
                     content += `  • ${item}\n`;
                 });
                 content += '\n';
             }
-            
+
             if (section.table) {
                 const headers = section.table.headers;
                 const rows = section.table.rows;
@@ -727,7 +734,7 @@ const Learning = () => {
                 });
                 content += '\n';
             }
-            
+
             if (section.formula) {
                 content += `\nFORMULA:\n${section.formula}\n\n`;
             }
