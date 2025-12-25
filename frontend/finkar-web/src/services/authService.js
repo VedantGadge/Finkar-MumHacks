@@ -83,3 +83,48 @@ export const approveConsent = async (mobileNumber, selectedBanks) => {
 
     return response.json();
 };
+
+/**
+ * Initiate Setu Consent for linking actual bank account
+ * @param {string} mobileNumber - The mobile number
+ * @param {string} redirectUrl - The URL to redirect back to after consent
+ * @returns {Promise<object>} - API response containing consent_id and url
+ */
+export const initiateSetuConsent = async (mobileNumber, redirectUrl) => {
+    const response = await fetch(`${API_BASE_URL}/api/setu/consent/initiate`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            mobile_number: mobileNumber,
+            redirect_url: redirectUrl
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to initiate Setu consent');
+    }
+
+    return response.json();
+};
+
+/**
+ * Check the status of a Setu consent
+ * @param {string} consentId - The consent ID to check
+ * @returns {Promise<object>} - API response with status
+ */
+export const getConsentStatus = async (consentId) => {
+    const response = await fetch(`${API_BASE_URL}/api/setu/consent/${consentId}/status`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch consent status');
+    }
+
+    return response.json();
+};

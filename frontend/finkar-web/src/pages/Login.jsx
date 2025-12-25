@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateOTP, verifyOTP, fetchFIPs, approveConsent } from '../services/authService';
+import { generateOTP, verifyOTP, fetchFIPs, approveConsent, initiateSetuConsent, getConsentStatus } from '../services/authService';
 import './Login.css';
 
 // Step components
-const PhoneInput = ({ phoneNumber, setPhoneNumber, onSubmit, isLoading, error }) => (
+const ChoiceSelection = ({ onSelect, isLoading }) => (
     <motion.div
         className="login-step"
         initial={{ opacity: 0, x: 50 }}
@@ -13,7 +13,7 @@ const PhoneInput = ({ phoneNumber, setPhoneNumber, onSubmit, isLoading, error })
         transition={{ duration: 0.3 }}
     >
         <div className="step-header">
-            <motion.div 
+            <motion.div
                 className="logo-mark"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -23,14 +23,98 @@ const PhoneInput = ({ phoneNumber, setPhoneNumber, onSubmit, isLoading, error })
                     <path d="M116.1 219.443L78.3 153.443V144.643H82.7C89.7667 144.643 95.7 143.977 100.5 142.643C105.433 141.31 109.3 139.11 112.1 136.043C114.9 132.977 116.567 128.777 117.1 123.443H78.3V110.643H116.9C115.967 105.71 114.1 101.71 111.3 98.6434C108.5 95.4434 104.7 93.11 99.9 91.6433C95.2333 90.1767 89.5 89.4434 82.7 89.4434H78.3V76.6434H161.1V89.4434H123.3C126.367 91.9767 128.9 94.9767 130.9 98.4434C132.9 101.91 134.167 105.977 134.7 110.643H161.1V123.443H135.1C134.167 133.177 130.433 140.777 123.9 146.243C117.5 151.577 108.967 154.977 98.3 156.443L136.5 219.443H116.1Z" fill="white" />
                 </svg>
             </motion.div>
-            <motion.h1 
+            <motion.h1
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.4 }}
             >
                 Welcome to FinKar
             </motion.h1>
-            <motion.p 
+            <motion.p
+                className="step-subtitle"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+            >
+                Choose how you want to experience the app
+            </motion.p>
+        </div>
+
+        <div className="choice-container" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
+            <motion.button
+                className="secondary-button"
+                onClick={() => onSelect('mock')}
+                disabled={isLoading}
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
+                whileTap={{ scale: 0.98 }}
+                style={{ padding: '1rem', borderRadius: '12px', border: '1px solid #E5E7EB', background: 'white', color: '#1F2937', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+            >
+                <div style={{ background: '#ECFDF5', padding: '10px', borderRadius: '8px' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div>
+                    <strong style={{ display: 'block', fontSize: '1rem', marginBottom: '4px', color: '#1F2937' }}>Use Mock Data</strong>
+                    <span style={{ fontSize: '0.875rem', color: '#6B7280' }}>Try the app with simulated bank data</span>
+                </div>
+            </motion.button>
+
+            <motion.button
+                className="secondary-button"
+                onClick={() => onSelect('setu')}
+                disabled={isLoading}
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.4 }}
+                whileTap={{ scale: 0.98 }}
+                style={{ padding: '1rem', borderRadius: '12px', border: '1px solid #E5E7EB', background: 'white', color: '#1F2937', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+            >
+                <div style={{ background: '#EFF6FF', padding: '10px', borderRadius: '8px' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                        <line x1="2" y1="10" x2="22" y2="10"></line>
+                    </svg>
+                </div>
+                <div>
+                    <strong style={{ display: 'block', fontSize: '1rem', marginBottom: '4px', color: '#1F2937' }}>Link Actual Bank Account</strong>
+                    <span style={{ fontSize: '0.875rem', color: '#6B7280' }}>Connect securely via Setu Account Aggregator</span>
+                </div>
+            </motion.button>
+        </div>
+    </motion.div>
+);
+
+const PhoneInput = ({ phoneNumber, setPhoneNumber, onSubmit, isLoading, error, flow }) => (
+    <motion.div
+        className="login-step"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -50 }}
+        transition={{ duration: 0.3 }}
+    >
+        <div className="step-header">
+            <motion.div
+                className="logo-mark"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, duration: 0.4 }}
+            >
+                <svg width="60" height="60" viewBox="0 0 250 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M116.1 219.443L78.3 153.443V144.643H82.7C89.7667 144.643 95.7 143.977 100.5 142.643C105.433 141.31 109.3 139.11 112.1 136.043C114.9 132.977 116.567 128.777 117.1 123.443H78.3V110.643H116.9C115.967 105.71 114.1 101.71 111.3 98.6434C108.5 95.4434 104.7 93.11 99.9 91.6433C95.2333 90.1767 89.5 89.4434 82.7 89.4434H78.3V76.6434H161.1V89.4434H123.3C126.367 91.9767 128.9 94.9767 130.9 98.4434C132.9 101.91 134.167 105.977 134.7 110.643H161.1V123.443H135.1C134.167 133.177 130.433 140.777 123.9 146.243C117.5 151.577 108.967 154.977 98.3 156.443L136.5 219.443H116.1Z" fill="white" />
+                </svg>
+            </motion.div>
+            <motion.h1
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+            >
+                Welcome to FinKar
+            </motion.h1>
+            <motion.p
                 className="step-subtitle"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -40,7 +124,7 @@ const PhoneInput = ({ phoneNumber, setPhoneNumber, onSubmit, isLoading, error })
             </motion.p>
         </div>
 
-        <motion.div 
+        <motion.div
             className="input-group"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -74,11 +158,11 @@ const PhoneInput = ({ phoneNumber, setPhoneNumber, onSubmit, isLoading, error })
             {isLoading ? (
                 <span className="loading-spinner"></span>
             ) : (
-                'Get OTP'
+                flow === 'setu' ? 'Continue' : 'Get OTP'
             )}
         </motion.button>
 
-        <motion.p 
+        <motion.p
             className="terms-text"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -95,7 +179,7 @@ const OTPVerification = ({ phoneNumber, otp, setOtp, onSubmit, onResend, onBack,
         const newOtp = [...otp];
         newOtp[index] = value;
         setOtp(newOtp);
-        
+
         // Auto-focus next input
         if (value && index < 5) {
             const nextInput = document.getElementById(`otp-${index + 1}`);
@@ -128,20 +212,20 @@ const OTPVerification = ({ phoneNumber, otp, setOtp, onSubmit, onResend, onBack,
         >
             <button className="back-button" onClick={onBack}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             </button>
 
             <div className="step-header">
-                <motion.div 
+                <motion.div
                     className="step-icon"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
                 >
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                        <rect x="5" y="2" width="14" height="20" rx="2" stroke="#047857" strokeWidth="2"/>
-                        <line x1="9" y1="18" x2="15" y2="18" stroke="#047857" strokeWidth="2" strokeLinecap="round"/>
+                        <rect x="5" y="2" width="14" height="20" rx="2" stroke="#047857" strokeWidth="2" />
+                        <line x1="9" y1="18" x2="15" y2="18" stroke="#047857" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                 </motion.div>
                 <motion.h1
@@ -151,7 +235,7 @@ const OTPVerification = ({ phoneNumber, otp, setOtp, onSubmit, onResend, onBack,
                 >
                     Verify OTP
                 </motion.h1>
-                <motion.p 
+                <motion.p
                     className="step-subtitle"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -162,7 +246,7 @@ const OTPVerification = ({ phoneNumber, otp, setOtp, onSubmit, onResend, onBack,
                 </motion.p>
             </div>
 
-            <motion.div 
+            <motion.div
                 className="otp-input-group"
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -198,7 +282,7 @@ const OTPVerification = ({ phoneNumber, otp, setOtp, onSubmit, onResend, onBack,
                 {isLoading ? <span className="loading-spinner"></span> : 'Verify'}
             </motion.button>
 
-            <motion.div 
+            <motion.div
                 className="resend-section"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -218,8 +302,8 @@ const OTPVerification = ({ phoneNumber, otp, setOtp, onSubmit, onResend, onBack,
 
 const BankSelection = ({ banks, selectedBanks, setSelectedBanks, onSubmit, onBack, isLoading, error }) => {
     const toggleBank = (bankId) => {
-        setSelectedBanks(prev => 
-            prev.includes(bankId) 
+        setSelectedBanks(prev =>
+            prev.includes(bankId)
                 ? prev.filter(id => id !== bankId)
                 : [...prev, bankId]
         );
@@ -235,19 +319,19 @@ const BankSelection = ({ banks, selectedBanks, setSelectedBanks, onSubmit, onBac
         >
             <button className="back-button" onClick={onBack}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             </button>
 
             <div className="step-header">
-                <motion.div 
+                <motion.div
                     className="step-icon"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
                 >
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 21H21M3 10H21M5 6L12 3L19 6M4 10V21M20 10V21M8 14V17M12 14V17M16 14V17" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M3 21H21M3 10H21M5 6L12 3L19 6M4 10V21M20 10V21M8 14V17M12 14V17M16 14V17" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </motion.div>
                 <motion.h1
@@ -257,7 +341,7 @@ const BankSelection = ({ banks, selectedBanks, setSelectedBanks, onSubmit, onBac
                 >
                     Select Your Banks
                 </motion.h1>
-                <motion.p 
+                <motion.p
                     className="step-subtitle"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -267,7 +351,7 @@ const BankSelection = ({ banks, selectedBanks, setSelectedBanks, onSubmit, onBac
                 </motion.p>
             </div>
 
-            <motion.div 
+            <motion.div
                 className="banks-grid"
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -284,8 +368,8 @@ const BankSelection = ({ banks, selectedBanks, setSelectedBanks, onSubmit, onBac
                         whileTap={{ scale: 0.98 }}
                     >
                         <div className="bank-logo">
-                            <img 
-                                src={bank.logo} 
+                            <img
+                                src={bank.logo}
                                 alt={bank.name}
                                 onError={(e) => {
                                     e.target.style.display = 'none';
@@ -300,7 +384,7 @@ const BankSelection = ({ banks, selectedBanks, setSelectedBanks, onSubmit, onBac
                         <div className="bank-checkbox">
                             {selectedBanks.includes(bank.id) && (
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                    <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             )}
                         </div>
@@ -337,20 +421,20 @@ const ConsentApproval = ({ selectedBanks, banks, onApprove, onBack, isLoading, e
         >
             <button className="back-button" onClick={onBack}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             </button>
 
             <div className="step-header">
-                <motion.div 
+                <motion.div
                     className="step-icon shield"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
                 >
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M9 12L11 14L15 10" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M9 12L11 14L15 10" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </motion.div>
                 <motion.h1
@@ -360,7 +444,7 @@ const ConsentApproval = ({ selectedBanks, banks, onApprove, onBack, isLoading, e
                 >
                     Approve Consent
                 </motion.h1>
-                <motion.p 
+                <motion.p
                     className="step-subtitle"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -370,7 +454,7 @@ const ConsentApproval = ({ selectedBanks, banks, onApprove, onBack, isLoading, e
                 </motion.p>
             </div>
 
-            <motion.div 
+            <motion.div
                 className="consent-card"
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -390,19 +474,19 @@ const ConsentApproval = ({ selectedBanks, banks, onApprove, onBack, isLoading, e
                     <ul className="consent-list">
                         <li>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M20 6L9 17L4 12" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M20 6L9 17L4 12" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             Account balance and summary
                         </li>
                         <li>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M20 6L9 17L4 12" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M20 6L9 17L4 12" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             Transaction history
                         </li>
                         <li>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M20 6L9 17L4 12" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M20 6L9 17L4 12" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             Profile information
                         </li>
@@ -418,7 +502,7 @@ const ConsentApproval = ({ selectedBanks, banks, onApprove, onBack, isLoading, e
 
                 <div className="consent-footer">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="#6B7280" strokeWidth="2"/>
+                        <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="#6B7280" strokeWidth="2" />
                     </svg>
                     <span>Your data is encrypted and secure</span>
                 </div>
@@ -447,15 +531,15 @@ const SuccessScreen = ({ onContinue }) => (
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
     >
-        <motion.div 
+        <motion.div
             className="success-icon"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
         >
             <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" fill="#047857"/>
-                <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="10" fill="#047857" />
+                <path d="M8 12L11 15L16 9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
         </motion.div>
 
@@ -467,7 +551,7 @@ const SuccessScreen = ({ onContinue }) => (
             You're All Set!
         </motion.h1>
 
-        <motion.p 
+        <motion.p
             className="success-message"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -491,7 +575,8 @@ const SuccessScreen = ({ onContinue }) => (
 
 // Main Login Component
 export default function Login({ onLoginSuccess }) {
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(0); // Start at 0 for choice
+    const [flow, setFlow] = useState(null); // 'mock' or 'setu'
     const [phoneNumber, setPhoneNumber] = useState('');
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [banks, setBanks] = useState([]);
@@ -499,6 +584,7 @@ export default function Login({ onLoginSuccess }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [resendTimer, setResendTimer] = useState(0);
+    const [consentId, setConsentId] = useState(null); // For Setu polling
 
     const startResendTimer = () => {
         setResendTimer(30);
@@ -513,6 +599,33 @@ export default function Login({ onLoginSuccess }) {
         }, 1000);
     };
 
+    // Poll for Setu consent status
+    useEffect(() => {
+        let pollInterval;
+        if (consentId && flow === 'setu') {
+            pollInterval = setInterval(async () => {
+                try {
+                    const statusData = await getConsentStatus(consentId);
+                    if (statusData.status === 'ACTIVE') {
+                        clearInterval(pollInterval);
+                        // Save login info and redirect
+                        localStorage.setItem('finkar_logged_in', 'true');
+                        localStorage.setItem('finkar_phone', phoneNumber);
+                        if (onLoginSuccess) onLoginSuccess();
+                    }
+                } catch (err) {
+                    console.error('Error polling consent status', err);
+                }
+            }, 3000); // Poll every 3 seconds
+        }
+        return () => clearInterval(pollInterval);
+    }, [consentId, flow, phoneNumber, onLoginSuccess]);
+
+    const handleFlowSelection = (selectedFlow) => {
+        setFlow(selectedFlow);
+        setStep(1);
+    };
+
     const handleSendOTP = async () => {
         if (phoneNumber.length !== 10) {
             setError('Please enter a valid 10-digit mobile number');
@@ -523,11 +636,31 @@ export default function Login({ onLoginSuccess }) {
         setError('');
 
         try {
-            await generateOTP(phoneNumber);
-            setStep(2);
-            startResendTimer();
+            if (flow === 'setu') {
+                // Store phone number for retrieval
+                localStorage.setItem('finkar_phone', phoneNumber);
+
+                const redirectUrl = window.location.origin + '?details_flow=setu&status=success';
+                const response = await initiateSetuConsent(phoneNumber, redirectUrl);
+
+                if (response && response.url && response.consent_id) {
+                    setConsentId(response.consent_id);
+                    // Open in new tab so we can poll in this tab
+                    window.open(response.url, '_blank');
+                    // Show a message or loading state in the current tab
+                    setIsLoading(true); // Keep loading state true while polling? Or show a specific "Waiting..." UI?
+                    // Let's keep isLoading true for now, or maybe add a specific "Waiting for confirmation" message
+                    setError('Please approve the consent in the newly opened window. Waiting for confirmation...');
+                } else {
+                    throw new Error('Invalid response from Setu');
+                }
+            } else {
+                await generateOTP(phoneNumber);
+                setStep(2);
+                startResendTimer();
+            }
         } catch (err) {
-            setError('Failed to send OTP. Please try again.');
+            setError(flow === 'setu' ? 'Failed to initiate consent. Please try again.' : 'Failed to send OTP. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -603,7 +736,7 @@ export default function Login({ onLoginSuccess }) {
         localStorage.setItem('finkar_logged_in', 'true');
         localStorage.setItem('finkar_phone', phoneNumber);
         localStorage.setItem('finkar_banks', JSON.stringify(selectedBanks));
-        
+
         if (onLoginSuccess) {
             onLoginSuccess();
         }
@@ -613,10 +746,10 @@ export default function Login({ onLoginSuccess }) {
         <div className="login-container page-container">
             <div className="login-content">
                 {/* Progress Indicator */}
-                {step < 5 && (
+                {step > 0 && step < 5 && (
                     <div className="progress-container">
                         <div className="progress-bar">
-                            <motion.div 
+                            <motion.div
                                 className="progress-fill"
                                 initial={{ width: '0%' }}
                                 animate={{ width: `${(step / 4) * 100}%` }}
@@ -628,6 +761,12 @@ export default function Login({ onLoginSuccess }) {
                 )}
 
                 <AnimatePresence mode="wait">
+                    {step === 0 && (
+                        <ChoiceSelection
+                            onSelect={handleFlowSelection}
+                            isLoading={isLoading}
+                        />
+                    )}
                     {step === 1 && (
                         <PhoneInput
                             key="phone"
@@ -636,6 +775,7 @@ export default function Login({ onLoginSuccess }) {
                             onSubmit={handleSendOTP}
                             isLoading={isLoading}
                             error={error}
+                            flow={flow}
                         />
                     )}
                     {step === 2 && (
