@@ -62,7 +62,7 @@ const VolumeChart = ({ data }) => {
             border: '1px solid #E5E7EB'
         }}>
             <div style={{
-                fontSize: '13px',
+                fontSize: '18px',
                 fontWeight: 600,
                 color: '#374151',
                 marginBottom: '8px'

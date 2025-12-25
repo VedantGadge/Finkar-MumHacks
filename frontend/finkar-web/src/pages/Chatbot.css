@@ -2,14 +2,19 @@
 .chatbot-page {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 60px);
+    height: 100%;
     /* Account for bottom nav */
     padding: 0;
+    padding-bottom: 90px;
+    /* Space for bottom nav */
     background: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .chat-header {
-    padding: 20px;
+    padding: 16px 20px;
     border-bottom: 1px solid #E5E7EB;
     background: #FFFFFF;
 }
@@ -32,8 +37,8 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 20px;
-    padding-bottom: 120px;
+    padding: 12px 20px;
+    padding-bottom: 20px;
     /* Extra padding to keep input visible */
     display: flex;
     flex-direction: column;
@@ -86,19 +91,7 @@
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    animation: messageSlideIn 0.3s ease-out;
-}
-
-@keyframes messageSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    /* Animation handled by Framer Motion */
 }
 
 .message.user {
@@ -209,13 +202,16 @@
 
 /* Input Area */
 .chat-input-container {
-    padding: 16px 20px;
+    padding: 12px 20px;
     padding-bottom: 20px;
-    margin-bottom: 16px;
+    margin-bottom: 0;
+    /* Push up above the bottom nav */
     background: #FFFFFF;
     border-top: 1px solid #E5E7EB;
     width: 100%;
     box-sizing: border-box;
+    position: relative;
+    z-index: 10;
 }
 
 .chat-input-wrapper {

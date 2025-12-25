@@ -11,6 +11,12 @@
     overflow-x: hidden;
 }
 
+.dashboard.dashboard-fullscreen {
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
 /* Header */
 .dashboard-header {
     margin-bottom: 30px;

@@ -1,10 +1,128 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { fetchTransactions, fetchBalance, getCurrentUserId } from '../services/transactionsService';
+import { fetchBudgets } from '../services/budgetService';
+import { fetchLiabilities } from '../services/liabilitiesService';
+import { fetchGoals } from '../services/goalsService';
 import './Splash.css';
 
 export default function Splash() {
   const { t } = useLanguage();
-  
+
+  // Silent pre-fetching of data
+  useEffect(() => {
+    const prefetchData = async () => {
+      try {
+        const userId = getCurrentUserId(); // Will default to 1 if not set
+
+        // Fetch specific data in parallel without blocking UI
+        // We catch individual errors so one failure doesn't stop others
+        const promises = [
+          // 1. Transactions
+          fetchTransactions(userId).then(data => {
+            const transactions = (data.transactions || []).map(txn => ({
+              id: txn.id,
+              date: txn.transaction_date,
+              desc: txn.narration,
+              type: txn.type === 'CREDIT' ? 'income' : 'expense',
+              amount: txn.amount.toString(),
+              category: txn.category
+            }));
+            localStorage.setItem('tracker_transactions', JSON.stringify(transactions));
+          }).catch(err => console.error("Prefetch transactions failed", err)),
+
+          // 2. Balance
+          fetchBalance(userId).then(data => {
+            if (data && data.current_balance !== undefined) {
+              localStorage.setItem('tracker_balance', JSON.stringify(data.current_balance));
+            }
+          }).catch(err => console.error("Prefetch balance failed", err)),
+
+          // 3. Budgets
+          fetchBudgets(userId).then(data => {
+            // Check if budgets is array or object and format matching Tracker.jsx expectation
+            // Tracker expects array of: { id, category, planned, actual, month }
+            // API returns array of: { id, user_id, category, amount, month, created_at, utilization_percent, status }
+            // We might need to map it if the structure differs significantly or if Tracker uses a "local" structure
+            // effectively. The Tracker uses `tracker_budgets` key.
+            // Based on Tracker.jsx code, the default was:
+            // { id: 1, category: 'Food', planned: 10000, actual: 8200, month: 'Nov 2025' }
+
+            const budgets = (Array.isArray(data) ? data : (data.budgets || [])).map(b => ({
+              id: b.id,
+              category: b.category,
+              planned: b.amount, // API uses 'amount' for limit
+              actual: (b.amount * (b.utilization_percent || 0) / 100), // Approximate actual from percent if needed, or 0
+              month: b.month,
+              utilization_percent: b.utilization_percent,
+              status: b.status
+            }));
+            localStorage.setItem('tracker_budgets', JSON.stringify(budgets));
+          }).catch(err => console.error("Prefetch budgets failed", err)),
+
+          // 4. Liabilities (Loans & Credit Cards)
+          fetchLiabilities(userId).then(data => {
+            // Map Loans
+            const loans = (data.loans || []).map(loan => ({
+              id: loan.id,
+              name: loan.name,
+              emi: loan.emi_amount,
+              nextDue: loan.next_due_date,
+              principal: loan.principal_amount,
+              remaining: null
+            }));
+            localStorage.setItem('tracker_loans', JSON.stringify(loans));
+
+            // Map Credit Cards
+            const creditCards = (data.credit_cards || []).map(card => ({
+              id: card.id,
+              name: card.card_name,
+              outstanding: card.outstanding_amount,
+              limit: card.limit_amount,
+              nextDue: card.due_date,
+              utilization: Math.round((card.outstanding_amount / card.limit_amount) * 100)
+            }));
+            localStorage.setItem('tracker_credit_cards', JSON.stringify(creditCards));
+          }).catch(err => console.error("Prefetch liabilities failed", err)),
+
+          // 5. Goals
+          fetchGoals(userId).then(data => {
+            const goalsArray = Array.isArray(data) ? data : (data.goals || []);
+            const mappedGoals = goalsArray.map(goal => {
+              const current = goal.saved ?? goal.current_amount ?? 0;
+              const target = goal.target ?? goal.target_amount ?? 1;
+              const percent = goal.percent ?? goal.progress_percent ?? (target > 0 ? (current / target) * 100 : 0);
+              const deadline = goal.deadline ?? goal.target_date ?? null;
+
+              return {
+                id: goal.id,
+                name: goal.name,
+                target: target,
+                current: current,
+                date: deadline,
+                percent: percent
+              };
+            });
+            localStorage.setItem('tracker_goals', JSON.stringify(mappedGoals));
+          }).catch(err => console.error("Prefetch goals failed", err))
+        ];
+
+        // We don't await the promises here because we want the splash screen to proceed 
+        // normally with its own timing or user interaction. 
+        // The fetches run in background.
+        // However, if the splash has a timer, these will likely race it.
+        // Given this component renders the Splash UI, it will mount, trigger this, 
+        // and when the user navigates away (or auto-redirects), the requests might still be pending.
+        // But since they are async, they should complete.
+
+      } catch (e) {
+        console.error("Prefetching init failed", e);
+      }
+    };
+
+    prefetchData();
+  }, []);
+
   return (
     <div className="splash-root page-container">
       <div className="splash-frame">
@@ -17,7 +135,7 @@ export default function Splash() {
                 <path d="M116.1 219.443L78.3 153.443V144.643H82.7C89.7667 144.643 95.7 143.977 100.5 142.643C105.433 141.31 109.3 139.11 112.1 136.043C114.9 132.977 116.567 128.777 117.1 123.443H78.3V110.643H116.9C115.967 105.71 114.1 101.71 111.3 98.6434C108.5 95.4434 104.7 93.11 99.9 91.6433C95.2333 90.1767 89.5 89.4434 82.7 89.4434H78.3V76.6434H161.1V89.4434H123.3C126.367 91.9767 128.9 94.9767 130.9 98.4434C132.9 101.91 134.167 105.977 134.7 110.643H161.1V123.443H135.1C134.167 133.177 130.433 140.777 123.9 146.243C117.5 151.577 108.967 154.977 98.3 156.443L136.5 219.443H116.1Z" />
               </mask>
               <path id="logo-r-letter" d="M116.1 219.443L78.3 153.443V144.643H82.7C89.7667 144.643 95.7 143.977 100.5 142.643C105.433 141.31 109.3 139.11 112.1 136.043C114.9 132.977 116.567 128.777 117.1 123.443H78.3V110.643H116.9C115.967 105.71 114.1 101.71 111.3 98.6434C108.5 95.4434 104.7 93.11 99.9 91.6433C95.2333 90.1767 89.5 89.4434 82.7 89.4434H78.3V76.6434H161.1V89.4434H123.3C126.367 91.9767 128.9 94.9767 130.9 98.4434C132.9 101.91 134.167 105.977 134.7 110.643H161.1V123.443H135.1C134.167 133.177 130.433 140.777 123.9 146.243C117.5 151.577 108.967 154.977 98.3 156.443L136.5 219.443H116.1Z" fill="white" />
-              <path d="M116.1 219.443L114.364 220.437L114.941 221.443H116.1V219.443ZM78.3 153.443H76.3V153.976L76.5645 154.437L78.3 153.443ZM78.3 144.643V142.643H76.3V144.643H78.3ZM100.5 142.643L99.9782 140.713L99.9647 140.716L100.5 142.643ZM112.1 136.043L110.623 134.695L112.1 136.043ZM117.1 123.443L119.09 123.642L119.31 121.443H117.1V123.443ZM78.3 123.443H76.3V125.443H78.3V123.443ZM78.3 110.643V108.643H76.3V110.643H78.3ZM116.9 110.643V112.643H119.314L118.865 110.272L116.9 110.643ZM111.3 98.6434L109.795 99.9604L109.809 99.9763L109.823 99.9919L111.3 98.6434ZM99.9 91.6433L99.3004 93.5513L99.3079 93.5537L99.3156 93.5561L99.9 91.6433ZM78.3 89.4434H76.3V91.4434H78.3V89.4434ZM78.3 76.6434V74.6434H76.3V76.6434H78.3ZM161.1 76.6434H163.1V74.6434H161.1V76.6434ZM161.1 89.4434V91.4434H163.1V89.4434H161.1ZM123.3 89.4434V87.4434H117.739L122.026 90.9853L123.3 89.4434ZM130.9 98.4434L129.168 99.4428V99.4428L130.9 98.4434ZM134.7 110.643L132.713 110.87L132.916 112.643H134.7V110.643ZM161.1 110.643H163.1V108.643H161.1V110.643ZM161.1 123.443V125.443H163.1V123.443H161.1ZM135.1 123.443V121.443H133.283L133.109 123.252L135.1 123.443ZM123.9 146.243L125.18 147.78L125.183 147.777L123.9 146.243ZM98.3 156.443L98.0276 154.462L95.0112 154.877L96.5898 157.48L98.3 156.443ZM136.5 219.443V221.443H140.052L138.21 218.406L136.5 219.443ZM116.1 219.443L117.836 218.449L80.0355 152.449L78.3 153.443L76.5645 154.437L114.364 220.437L116.1 219.443ZM78.3 153.443H80.3V144.643H78.3H76.3V153.443H78.3ZM78.3 144.643V146.643H82.7V144.643V142.643H78.3V144.643ZM82.7 144.643V146.643C89.8786 146.643 96.0051 145.968 101.035 144.57L100.5 142.643L99.9647 140.716C95.3949 141.986 89.6547 142.643 82.7 142.643V144.643ZM100.5 142.643L101.022 144.574C106.238 143.164 110.467 140.798 113.577 137.392L112.1 136.043L110.623 134.695C108.133 137.422 104.629 139.456 99.9782 140.713L100.5 142.643ZM112.1 136.043L113.577 137.392C116.742 133.926 118.526 129.279 119.09 123.642L117.1 123.443L115.11 123.244C114.607 128.274 113.058 132.028 110.623 134.695L112.1 136.043ZM117.1 123.443V121.443H78.3V123.443V125.443H117.1V123.443ZM78.3 123.443H80.3V110.643H78.3H76.3V123.443H78.3ZM78.3 110.643V112.643H116.9V110.643V108.643H78.3V110.643ZM116.9 110.643L118.865 110.272C117.877 105.05 115.875 100.688 112.777 97.2948L111.3 98.6434L109.823 99.9919C112.325 102.732 114.056 106.37 114.935 111.015L116.9 110.643ZM111.3 98.6434L112.805 97.3263C109.718 93.7987 105.576 91.2863 100.484 89.7306L99.9 91.6433L99.3156 93.5561C103.824 94.9337 107.282 97.088 109.795 99.9604L111.3 98.6434ZM99.9 91.6433L100.5 89.7354C95.5798 88.1891 89.6303 87.4434 82.7 87.4434V89.4434V91.4434C89.3697 91.4434 94.8869 92.1643 99.3004 93.5513L99.9 91.6433ZM82.7 89.4434V87.4434H78.3V89.4434V91.4434H82.7V89.4434ZM78.3 89.4434H80.3V76.6434H78.3H76.3V89.4434H78.3ZM78.3 76.6434V78.6434H161.1V76.6434V74.6434H78.3V76.6434ZM161.1 76.6434H159.1V89.4434H161.1H163.1V76.6434H161.1ZM161.1 89.4434V87.4434H123.3V89.4434V91.4434H161.1V89.4434ZM123.3 89.4434L122.026 90.9853C124.908 93.3656 127.286 96.1816 129.168 99.4428L130.9 98.4434L132.632 97.4439C130.514 93.7718 127.826 90.5877 124.574 87.9014L123.3 89.4434ZM130.9 98.4434L129.168 99.4428C131.009 102.635 132.205 106.429 132.713 110.87L134.7 110.643L136.687 110.416C136.128 105.524 134.791 101.185 132.632 97.4439L130.9 98.4434ZM134.7 110.643V112.643H161.1V110.643V108.643H134.7V110.643ZM161.1 110.643H159.1V123.443H161.1H163.1V110.643H161.1ZM161.1 123.443V121.443H135.1V123.443V125.443H161.1V123.443ZM135.1 123.443L133.109 123.252C132.218 132.546 128.687 139.631 122.617 144.709L123.9 146.243L125.183 147.777C132.18 141.923 136.115 133.807 137.091 123.634L135.1 123.443ZM123.9 146.243L122.62 144.707C116.58 149.74 108.43 153.032 98.0276 154.462L98.3 156.443L98.5724 158.425C109.503 156.922 118.42 153.414 125.18 147.78L123.9 146.243ZM98.3 156.443L96.5898 157.48L134.79 220.48L136.5 219.443L138.21 218.406L100.01 155.406L98.3 156.443ZM136.5 219.443V217.443H116.1V219.443V221.443H136.5V219.443Z" fill="white" mask="url(#path-2-outside-1_414_27)" />
+              <path d="M116.1 219.443L114.364 220.437L114.941 221.443H116.1V219.443ZM78.3 153.443H76.3V153.976L76.5645 154.437L78.3 153.443ZM78.3 144.643V142.643H76.3V144.643H78.3ZM100.5 142.643L99.9782 140.713L99.9647 140.716L100.5 142.643ZM112.1 136.043L110.623 134.695L112.1 136.043ZM117.1 123.443L119.09 123.642L119.31 121.443H117.1V123.443ZM78.3 123.443H76.3V125.443H78.3V123.443ZM78.3 110.643V108.643H76.3V110.643H78.3ZM116.9 110.643V112.643H119.314L118.865 110.272L116.9 110.643ZM111.3 98.6434L109.795 99.9604L109.809 99.9763L109.823 99.9919L111.3 98.6434ZM99.9 91.6433L99.3004 93.5513L99.3079 93.5537L99.3156 93.5561L99.9 91.6433ZM78.3 89.4434H76.3V91.4434H78.3V89.4434ZM78.3 76.6434V74.6434H76.3V76.6434H78.3ZM161.1 76.6434H163.1V74.6434H161.1V76.6434ZM161.1 89.4434V91.4434H163.1V89.4434H161.1ZM123.3 89.4434V87.4434H117.739L122.026 90.9853L123.3 89.4434ZM130.9 98.4434L129.168 99.4428V99.4428L130.9 98.4434ZM134.7 110.643L132.713 110.87L132.916 112.643H134.7V110.643ZM161.1 110.643H163.1V108.643H161.1V110.643ZM161.1 123.443V125.443H163.1V123.443H161.1ZM135.1 123.443V121.443H133.283L133.109 123.252L135.1 123.443ZM123.9 146.243L125.18 147.78L125.183 147.777L123.9 146.243ZM98.3 156.443L98.0276 154.462L95.0112 154.877L96.5898 157.48L98.3 156.443ZM136.5 219.443V221.443H140.052L138.21 218.406L136.5 219.443ZM116.1 219.443L117.836 218.449L80.0355 152.449L78.3 153.443L76.5645 154.437L114.364 220.437L116.1 219.443ZM78.3 153.443H80.3V144.643H78.3H76.3V153.443H78.3ZM78.3 144.643V146.643H82.7V144.643V142.643H78.3V144.643ZM82.7 144.643V146.643C89.8786 146.643 96.0051 145.968 101.035 144.57L100.5 142.643L99.9647 140.716C95.3949 141.986 89.6547 142.643 82.7 142.643V144.643ZM100.5 142.643L101.022 144.574C106.238 143.164 110.467 140.798 113.577 137.392L112.1 136.043L110.623 134.695C108.133 137.422 104.629 139.456 99.9782 140.713L100.5 142.643ZM112.1 136.043L113.577 137.392C116.742 133.926 118.526 129.279 119.09 123.642L117.1 123.443L115.11 123.244C114.607 128.274 113.058 132.028 110.623 134.695L112.1 136.043ZM117.1 123.443V121.443H78.3V123.443V125.443H117.1V123.443ZM78.3 123.443H80.3V110.643H78.3H76.3V123.443H78.3ZM78.3 110.643V112.643H116.9V110.643V108.643H78.3V110.643ZM116.9 110.643L118.865 110.272C117.877 105.05 115.875 100.688 112.777 97.2948L111.3 98.6434L109.823 99.9919C112.325 102.732 114.056 106.37 114.935 111.015L116.9 110.643ZM111.3 98.6434L112.805 97.3263C109.718 93.7987 105.576 91.2863 100.484 89.7306L99.9 91.6433L99.3156 93.5513C103.824 94.9337 107.282 97.088 109.795 99.9604L111.3 98.6434ZM99.9 91.6433L100.5 89.7354C95.5798 88.1891 89.6303 87.4434 82.7 87.4434V89.4434V91.4434C89.3697 91.4434 94.8869 92.1643 99.3004 93.5513L99.9 91.6433ZM82.7 89.4434V87.4434H78.3V89.4434V91.4434H82.7V89.4434ZM78.3 89.4434H80.3V76.6434H78.3H76.3V89.4434H78.3ZM78.3 76.6434V78.6434H161.1V76.6434V74.6434H78.3V76.6434ZM161.1 76.6434H159.1V89.4434H161.1H163.1V76.6434H161.1ZM161.1 89.4434V87.4434H123.3V89.4434V91.4434H161.1V89.4434ZM123.3 89.4434L122.026 90.9853C124.908 93.3656 127.286 96.1816 129.168 99.4428L130.9 98.4434L132.632 97.4439C130.514 93.7718 127.826 90.5877 124.574 87.9014L123.3 89.4434ZM130.9 98.4434L129.168 99.4428C131.009 102.635 132.205 106.429 132.713 110.87L134.7 110.643L136.687 110.416C136.128 105.524 134.791 101.185 132.632 97.4439L130.9 98.4434ZM134.7 110.643V112.643H161.1V110.643V108.643H134.7V110.643ZM161.1 110.643H159.1V123.443H161.1H163.1V110.643H161.1ZM161.1 123.443V121.443H135.1V123.443V125.443H161.1V123.443ZM135.1 123.443L133.109 123.252C132.218 132.546 128.687 139.631 122.617 144.709L123.9 146.243L125.183 147.777C132.18 141.923 136.115 133.807 137.091 123.634L135.1 123.443ZM123.9 146.243L122.62 144.707C116.58 149.74 108.43 153.032 98.0276 154.462L98.3 156.443L98.5724 158.425C109.503 156.922 118.42 153.414 125.18 147.78L123.9 146.243ZM98.3 156.443L96.5898 157.48L134.79 220.48L136.5 219.443L138.21 218.406L100.01 155.406L98.3 156.443ZM136.5 219.443V217.443H116.1V219.443V221.443H136.5V219.443Z" fill="white" mask="url(#path-2-outside-1_414_27)" />
 
               {/* Animated bars - shortest to tallest */}
               <rect id="bar-1" x="105.168" y="60.7227" width="7.72222" height="7.72222" fill="#efefef" stroke="#efefef" strokeWidth="2" />

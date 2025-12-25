@@ -2,8 +2,9 @@
  * API service for stock-related endpoints
  */
 
-// Use environment variable for API URL (defaults to localhost for development)
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
+// Use environment variable for API URL (defaults to deployed backend for APK)
+// Note: We point to /v1 directly because the upstream python API (HF Space) uses /api/v1
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://yashganatra-finkar.hf.space/api/v1";
 const CACHE_KEY_PREFIX = "finkar_cache_";
 const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
 
@@ -99,7 +100,7 @@ export const generateCaseStudy = async (
 
     console.log("Frontend sending to Backend:", JSON.stringify(requestBody, null, 2));
 
-    const response = await fetch(`${API_BASE_URL}/case-study`, {
+    const response = await fetch(`${API_BASE_URL}/case-study/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -175,36 +176,52 @@ export const getTickerDisplayName = (ticker) => {
  * Fetches market indices data
  * @returns {Promise<Array>} Array of market indices
  */
+/**
+ * Fetches market indices data
+ * NOTE: Hardcoded locally for APK compatibility with existing HF deployment
+ */
 export const fetchMarketIndices = async () => {
-  return fetchWithCache("market_indices", async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/market-indices`);
-        if (!response.ok) {
-        throw new Error("Failed to fetch market indices");
-        }
-        return await response.json();
-    } catch (error) {
-        console.error("Error fetching market indices:", error);
-        return [];
-    }
-  });
+  // Return static data immediately (mocking the backend response)
+  return [
+    {
+      name: "NIFTY 50",
+      value: 19674.25,
+      change: 142.3,
+      changePercent: 0.73,
+      trendData: [19520, 19545, 19580, 19610, 19635, 19650, 19674],
+    },
+    {
+      name: "SENSEX",
+      value: 65930.77,
+      change: 389.5,
+      changePercent: 0.59,
+      trendData: [65480, 65520, 65600, 65720, 65810, 65880, 65930],
+    },
+    {
+      name: "BANK NIFTY",
+      value: 44256.85,
+      change: -125.4,
+      changePercent: -0.28,
+      trendData: [44450, 44420, 44380, 44350, 44310, 44280, 44256],
+    },
+  ];
 };
 
 /**
  * Fetches sector performance data
- * @returns {Promise<Array>} Array of sector performance data
+ * NOTE: Hardcoded locally for APK compatibility with existing HF deployment
  */
 export const fetchSectorPerformance = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/sector-performance`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch sector performance");
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching sector performance:", error);
-    return [];
-  }
+    return [
+    { name: "IT", performance: 2.4, icon: "💻" },
+    { name: "Banking", performance: 1.8, icon: "🏦" },
+    { name: "Auto", performance: -0.5, icon: "🚗" },
+    { name: "Pharma", performance: 3.2, icon: "💊" },
+    { name: "Energy", performance: 1.1, icon: "⚡" },
+    { name: "FMCG", performance: 0.3, icon: "🛒" },
+    { name: "Metals", performance: -1.2, icon: "⚙️" },
+    { name: "Realty", performance: 0.8, icon: "🏢" },
+  ];
 };
 
 /**
@@ -214,7 +231,7 @@ export const fetchSectorPerformance = async () => {
  */
 export const fetchStockData = async (ticker) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/v1/stocks/${ticker}/data`, {
+    const response = await fetch(`${API_BASE_URL}/stocks/${ticker}/data`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -245,32 +262,35 @@ export const fetchStockData = async (ticker) => {
  * @param {string[]} tickers - Array of stock ticker symbols
  * @returns {Promise<Object>} Object mapping ticker to stock data
  */
+/**
+ * Fetches lightweight stock data for multiple tickers in parallel
+ * Restored to client-side Promise.all because HF deployment lacks batch endpoint
+ */
 export const fetchMultipleStockData = async (tickers) => {
-  // Use a composite key based on sorted tickers to cache this specific batch request
-  // LIMITATION: If users modify "Featured Stocks" frequently, this cache key strategy might need refinement.
-  // For now, assuming "Featured Stocks" are stable for the session.
-  const cacheKey = `batch_stocks_${tickers.slice().sort().join('_')}`;
-  
-  return fetchWithCache(cacheKey, async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/v1/stocks/batch`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tickers }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch batch stock data: ${response.statusText}`);
+  try {
+    const promises = tickers.map(ticker => 
+        fetchStockData(ticker).catch(err => {
+            console.error(`Failed to load ${ticker}`, err);
+            return null;
+        })
+    );
+    
+    // Execute all requests in parallel
+    const results = await Promise.all(promises);
+    
+    // Map results back to an object { "TCS.NS": data, ... }
+    const stocksMap = {};
+    results.forEach((data, index) => {
+        if (data) {
+            stocksMap[tickers[index]] = data;
         }
-
-        return await response.json();
-    } catch (error) {
-        console.error("Error fetching multiple stock data:", error);
-        throw error;
-    }
-  });
+    });
+    
+    return stocksMap;
+  } catch (error) {
+    console.error("Error fetching multiple stock data:", error);
+    return {};
+  }
 };
 
 /**
@@ -282,7 +302,7 @@ export const fetchMultipleStockData = async (tickers) => {
 export const fetchStockHistorical = async (ticker, period = "1mo") => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/v1/stocks/${ticker}/historical?period=${period}`,
+      `${API_BASE_URL}/stocks/${ticker}/historical?period=${period}`,
       {
         method: "GET",
         headers: {
@@ -314,7 +334,7 @@ export const fetchNifty50Historical = async (period = "1mo") => {
   return fetchWithCache(`nifty50_${period}`, async () => {
     try {
         const response = await fetch(
-        `${API_BASE_URL}/v1/indices/nifty50/historical?period=${period}`,
+        `${API_BASE_URL}/indices/nifty50/historical?period=${period}`,
         {
             method: "GET",
             headers: {
@@ -346,7 +366,7 @@ export const fetchSensexHistorical = async (period = "1mo") => {
   return fetchWithCache(`sensex_${period}`, async () => {
     try {
         const response = await fetch(
-        `${API_BASE_URL}/v1/indices/sensex/historical?period=${period}`,
+        `${API_BASE_URL}/indices/sensex/historical?period=${period}`,
         {
             method: "GET",
             headers: {
@@ -378,7 +398,7 @@ export const fetchBankNiftyHistorical = async (period = "1mo") => {
   return fetchWithCache(`banknifty_${period}`, async () => {
     try {
         const response = await fetch(
-        `${API_BASE_URL}/v1/indices/banknifty/historical?period=${period}`,
+        `${API_BASE_URL}/indices/banknifty/historical?period=${period}`,
         {
             method: "GET",
             headers: {

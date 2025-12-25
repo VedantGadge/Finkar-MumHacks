@@ -14,7 +14,10 @@ import { fetchTransactions, fetchBalance } from '../services/transactionsService
 import { fetchGoals } from '../services/goalsService';
 import { fetchBudgets } from '../services/budgetService';
 import { fetchLiabilities } from '../services/liabilitiesService';
+import { fetchSnapshots } from '../services/snapshotsService';
+import { fetchFinancialScore } from '../services/scoreService';
 import FinancialHealthCard from '../components/dashboard/FinancialHealthCard';
+import MonthlySnapshots from '../components/dashboard/MonthlySnapshots';
 import QuickActions from '../components/dashboard/QuickActions';
 import UpcomingObligations from '../components/dashboard/UpcomingObligations';
 import RecentActivity from '../components/dashboard/RecentActivity';
@@ -41,6 +44,8 @@ function Dashboard({ onLogout }) {
     const [loans, setLoans] = useState([]);
     const [creditCards, setCreditCards] = useState([]);
     const [apiBalance, setApiBalance] = useState(null);
+    const [snapshots, setSnapshots] = useState([]);
+    const [financialScore, setFinancialScore] = useState(45); // Default score
     const [isLoading, setIsLoading] = useState(true);
 
     // Toast and Dialog states
@@ -69,12 +74,14 @@ function Dashboard({ onLogout }) {
                 const userId = localStorage.getItem('finkar_user_id') || 1; // Get user ID from localStorage
 
                 // Fetch all data in parallel
-                const [transactionsData, goalsData, budgetsData, liabilitiesData, balanceData] = await Promise.all([
+                const [transactionsData, goalsData, budgetsData, liabilitiesData, balanceData, snapshotsData, scoreData] = await Promise.all([
                     fetchTransactions(userId).catch(() => ({ transactions: [] })),
                     fetchGoals(userId).catch(() => []),
                     fetchBudgets(userId).catch(() => ({ budgets: [] })),
                     fetchLiabilities(userId).catch(() => ({ loans: [], credit_cards: [] })),
-                    fetchBalance(userId).catch(() => ({ balance: null }))
+                    fetchBalance(userId).catch(() => ({ balance: null })),
+                    fetchSnapshots(userId).catch(() => []),
+                    fetchFinancialScore(userId).catch(() => ({ score: 45 }))
                 ]);
 
                 // Map transactions
@@ -134,6 +141,10 @@ function Dashboard({ onLogout }) {
                 if (balanceData && balanceData.current_balance !== undefined) {
                     setApiBalance(balanceData.current_balance);
                 }
+                setSnapshots(Array.isArray(snapshotsData) ? snapshotsData : []);
+                if (scoreData && scoreData.score !== undefined) {
+                    setFinancialScore(scoreData.score);
+                }
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
             } finally {
@@ -156,13 +167,6 @@ function Dashboard({ onLogout }) {
     );
 
     const totalBalance = apiBalance !== null ? parseFloat(apiBalance) : (totalIncome - totalExpense);
-
-    const healthScore = useMemo(() => {
-        let score = 50;
-        if (totalBalance > 0) score += 15;
-        if (totalBalance > 50000) score += 10;
-        return Math.max(0, Math.min(100, score));
-    }, [totalBalance]);
 
     const upcomingObligations = useMemo(() => {
         const obligations = [];
@@ -309,7 +313,10 @@ function Dashboard({ onLogout }) {
             </div>
 
             {/* Financial Health Card */}
-            <FinancialHealthCard balance={totalBalance} healthScore={healthScore} />
+            <FinancialHealthCard balance={totalBalance} healthScore={financialScore} />
+
+            {/* Monthly Snapshots */}
+            <MonthlySnapshots snapshots={snapshots} isLoading={isLoading} />
 
             {/* Quick Actions */}
             <QuickActions
@@ -508,7 +515,7 @@ function Dashboard({ onLogout }) {
     );
 
     return (
-        <div className="dashboard page-container">
+        <div className={`dashboard page-container ${activeTab === 2 ? 'dashboard-fullscreen' : ''}`}>
             {/* Toast Notification */}
             <Toast
                 message={toast.message}
@@ -585,7 +592,7 @@ function Dashboard({ onLogout }) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        style={{ width: '100%' }}
+                        style={{ width: '100%', height: '100%' }}
                     >
                         <Chatbot />
                     </motion.div>

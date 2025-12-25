@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Capacitor } from '@capacitor/core';
+import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { sendMessage } from '../services/chatService';
@@ -12,7 +14,7 @@ const SESSION_KEY = 'finkar_chatbot_session_id';
 
 const Chatbot = () => {
     const { t } = useLanguage();
-    
+
     // Session Management
     const [sessionId] = useState(() => {
         let sid = localStorage.getItem(SESSION_KEY);
@@ -58,22 +60,17 @@ const Chatbot = () => {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isTranslating, setIsTranslating] = useState(false);
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
     const inputRef = useRef(null);
-    const isInitialMount = useRef(true);
     const recognitionRef = useRef(null);
     const synthRef = useRef(window.speechSynthesis);
 
-    // Auto-scroll to bottom when new messages arrive (but not on initial mount)
+    // Auto-scroll to bottom when new messages arrive or on mount
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     useEffect(() => {
-        // Skip auto-scroll on initial mount
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
         scrollToBottom();
     }, [messages, isLoading]);
 
@@ -87,68 +84,64 @@ const Chatbot = () => {
     }, [messages]);
 
     // Initialize speech recognition with multi-language support
+    // Initialize speech recognition with multi-language support
     useEffect(() => {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = false;
-            recognitionRef.current.interimResults = true; // Enable interim results for faster response
-            // Use a language that supports both Hindi and English recognition
-            // Most browsers will auto-detect when using a broad language setting
-            recognitionRef.current.lang = 'hi-IN'; // Hindi setting also recognizes English
-            recognitionRef.current.maxAlternatives = 1;
-
-            recognitionRef.current.onresult = async (event) => {
-                const transcript = event.results[event.results.length - 1][0].transcript;
-
-                if (event.results[event.results.length - 1].isFinal) {
-                    // Auto-detect Hindi and translate to English
-                    if (containsHindi(transcript)) {
-                        setInputValue(transcript); // Show original Hindi text first
-                        setIsTranslating(true);
-                        try {
-                            const translatedText = await translateHindiToEnglish(transcript);
-                            setInputValue(translatedText);
-                        } catch (err) {
-                            console.error('Translation failed:', err);
-                            // Keep original text if translation fails
-                        } finally {
-                            setIsTranslating(false);
+        const initializeSpeech = async () => {
+            if (Capacitor.isNativePlatform()) {
+                // Native implementation
+                try {
+                    const { available } = await SpeechRecognition.available();
+                    if (available) {
+                        // Request permissions first
+                        const hasPermission = await SpeechRecognition.checkPermissions();
+                        if (hasPermission.speechRecognition !== 'granted' && hasPermission.speechRecognition !== 'limited') {
+                            await SpeechRecognition.requestPermissions();
                         }
-                    } else {
-                        // English text - use as-is
-                        setInputValue(transcript);
                     }
-                    setIsListening(false);
-                } else {
-                    setInputValue(transcript);
+                } catch (e) {
+                    console.error('Speech recognition not available:', e);
                 }
-            };
+            } else {
+                // Web implementation
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognitionWeb = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    recognitionRef.current = new SpeechRecognitionWeb();
+                    recognitionRef.current.continuous = false;
+                    recognitionRef.current.interimResults = true;
+                    recognitionRef.current.lang = 'hi-IN';
+                    recognitionRef.current.maxAlternatives = 1;
 
-            recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
+                    recognitionRef.current.onresult = async (event) => {
+                        const transcript = event.results[event.results.length - 1][0].transcript;
+                        if (event.results[event.results.length - 1].isFinal) {
+                            handleSpeechResult(transcript);
+                        } else {
+                            setInputValue(transcript);
+                        }
+                    };
 
-                // Ignore 'no-speech' errors as they're common when user doesn't speak immediately
-                if (event.error === 'no-speech') {
-                    setIsListening(false);
-                    return;
+                    recognitionRef.current.onerror = (event) => {
+                        console.error('Speech recognition error:', event.error);
+                        if (event.error === 'no-speech') {
+                            setIsListening(false);
+                            return;
+                        }
+                        if (event.error === 'not-allowed') {
+                            setError('Microphone access denied.');
+                        } else {
+                            setError('Voice recognition failed.');
+                        }
+                        setIsListening(false);
+                    };
+
+                    recognitionRef.current.onend = () => {
+                        setIsListening(false);
+                    };
                 }
+            }
+        };
 
-                // Only show error for actual problems
-                if (event.error === 'not-allowed') {
-                    setError('Microphone access denied. Please allow microphone permissions.');
-                } else if (event.error === 'network') {
-                    setError('Network error. Please check your connection.');
-                } else {
-                    setError('Voice recognition failed. Please try again.');
-                }
-                setIsListening(false);
-            };
-
-            recognitionRef.current.onend = () => {
-                setIsListening(false);
-            };
-        }
+        initializeSpeech();
 
         return () => {
             if (recognitionRef.current) {
@@ -159,6 +152,92 @@ const Chatbot = () => {
             }
         };
     }, []);
+
+    // Helper to handle final speech result (common for verify/web)
+    const handleSpeechResult = async (transcript) => {
+        if (containsHindi(transcript)) {
+            setInputValue(transcript);
+            setIsTranslating(true);
+            try {
+                const translatedText = await translateHindiToEnglish(transcript);
+                setInputValue(translatedText);
+            } catch (err) {
+                console.error('Translation failed:', err);
+            } finally {
+                setIsTranslating(false);
+            }
+        } else {
+            setInputValue(transcript);
+        }
+        setIsListening(false);
+    };
+
+    // Toggle voice input with native support
+    const toggleVoiceInput = async () => {
+        if (Capacitor.isNativePlatform()) {
+            // Native Logic
+            if (isListening) {
+                try {
+                    await SpeechRecognition.stop();
+                    setIsListening(false);
+                } catch (e) {
+                    console.error('Error stopping speech:', e);
+                }
+            } else {
+                try {
+                    setError(null);
+                    setIsListening(true);
+
+                    // Add listeners BEFORE starting
+                    // Clear existing listeners first to avoid duplicates if any
+                    await SpeechRecognition.removeAllListeners();
+
+                    await SpeechRecognition.addListener('partialResults', (data) => {
+                        if (data.matches && data.matches.length > 0) {
+                            setInputValue(data.matches[0]);
+                        }
+                    });
+
+                    // Some devices/versions use 'result' for final, or trigger it at end
+                    await SpeechRecognition.addListener('result', (data) => {
+                        if (data.matches && data.matches.length > 0) {
+                            handleSpeechResult(data.matches[0]);
+                        }
+                    });
+
+                    // Start listening
+                    await SpeechRecognition.start({
+                        language: "en-IN", // Broader support for Indian English/Hindi mix
+                        maxResults: 1,
+                        prompt: "Speak now",
+                        partialResults: true,
+                        popup: false,
+                    });
+
+                } catch (e) {
+                    console.error('Error starting speech:', e);
+                    setIsListening(false);
+                    setError('Voice recognition failed. Check permissions.');
+                }
+            }
+
+        } else {
+            // Web Logic
+            if (!recognitionRef.current) {
+                setError('Voice recognition is not supported on this device.');
+                return;
+            }
+
+            if (isListening) {
+                recognitionRef.current.stop();
+                setIsListening(false);
+            } else {
+                setError(null);
+                setIsListening(true);
+                recognitionRef.current.start();
+            }
+        }
+    };
 
     // Text-to-speech function
     const speakText = (text) => {
@@ -179,22 +258,7 @@ const Chatbot = () => {
         }
     };
 
-    // Toggle voice input
-    const toggleVoiceInput = () => {
-        if (!recognitionRef.current) {
-            setError('Voice recognition is not supported on this device.');
-            return;
-        }
 
-        if (isListening) {
-            recognitionRef.current.stop();
-            setIsListening(false);
-        } else {
-            setError(null);
-            setIsListening(true);
-            recognitionRef.current.start();
-        }
-    };
 
     const handleSendMessage = async () => {
         const trimmedMessage = inputValue.trim();
@@ -278,7 +342,7 @@ const Chatbot = () => {
             </motion.div>
 
             {/* Messages Container */}
-            <div className="chat-messages">
+            <div className="chat-messages" ref={messagesContainerRef}>
                 <AnimatePresence>
                     {messages.map((message, index) => (
                         <motion.div

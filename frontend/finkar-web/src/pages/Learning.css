@@ -749,6 +749,51 @@
     background: #F3F4F6;
 }
 
+/* Personalized Learning Section */
+.personalized-learning-section {
+    margin-bottom: 40px;
+    padding: 0 20px;
+}
+
+.personalized-learning-section .section-header {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.personalized-learning-section .section-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    background: linear-gradient(to right, #6e8efb, #a777e3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.personalized-learning-section .section-header p {
+    color: #6B7280;
+    /* Using same gray as other text */
+    font-size: 1rem;
+}
+
+.flashcards-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    perspective: 1000px;
+}
+
+.loading-cards,
+.no-cards {
+    text-align: center;
+    padding: 40px;
+    color: #6B7280;
+    font-style: italic;
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+}
+
 /* Mobile Adjustments */
 @media (max-width: 480px) {
     .learning-page {

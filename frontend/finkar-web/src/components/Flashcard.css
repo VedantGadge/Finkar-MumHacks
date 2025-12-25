@@ -1,0 +1,240 @@
+.insight-card-container {
+    width: 100%;
+    max-width: 400px;
+    height: 200px;
+    /* Shorter height */
+    perspective: 1000px;
+    cursor: pointer;
+    margin: 0 auto;
+}
+
+.insight-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transform-style: preserve-3d;
+}
+
+/* Face Styles */
+.insight-card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 14px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-sizing: border-box;
+}
+
+.insight-card-container:hover .insight-card-face {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #047857;
+}
+
+/* Front Face Specifics */
+.insight-card-front {
+    background: white;
+}
+
+/* Back Face Specifics */
+.insight-card-back {
+    /* Very Light Theme Gradient */
+    background: linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%);
+    transform: rotateY(180deg);
+    border: 1px solid #A7F3D0;
+}
+
+/* Icon Styles */
+.insight-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #ECFDF5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #047857;
+    margin-bottom: 2px;
+}
+
+.insight-answer-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #047857;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 2px;
+}
+
+/* Text Styles */
+.insight-question {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.insight-answer {
+    font-size: 14px;
+    color: #1F2937;
+    margin: 0;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.insight-hint {
+    font-size: 10px;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: auto;
+    font-weight: 600;
+}
+
+.insight-card-back .insight-hint {
+    color: #6B7280;
+}
+
+/* Carousel Section Styles (Preserved) */
+.insights-carousel-section {
+    margin-bottom: 32px;
+    /* Ensure container takes full width but follows page padding */
+}
+
+.insights-carousel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 0 4px;
+}
+
+.insights-carousel-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.insights-carousel-header h2 svg {
+    color: #047857;
+}
+
+.insights-carousel-nav {
+    display: flex;
+    gap: 8px;
+}
+
+.insights-carousel-nav button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    color: #6B7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.insights-carousel-nav button:hover:not(:disabled) {
+    background: #047857;
+    border-color: #047857;
+    color: white;
+}
+
+.insights-carousel-nav button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #F3F4F6;
+}
+
+.insights-carousel-track {
+    overflow: hidden;
+    position: relative;
+    /* Add padding to show shadow of cards if needed, prevent cutting off */
+    padding: 10px 0 20px 0;
+    margin: -10px 0 -20px 0;
+    touch-action: pan-y;
+    cursor: grab;
+}
+
+.insights-carousel-track:active {
+    cursor: grabbing;
+}
+
+.insights-carousel-inner {
+    display: flex;
+}
+
+.insights-carousel-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    padding: 0 8px;
+    /* Correct spacing */
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+}
+
+.insights-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.insights-carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #E5E7EB;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.insights-carousel-dot.active {
+    background: #047857;
+    width: 24px;
+    border-radius: 4px;
+}
+
+.insights-loading,
+.insights-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6B7280;
+    font-size: 14px;
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #E5E7EB;
+}
+
+.insights-loading svg {
+    animation: spin 1s linear infinite;
+    margin-bottom: 8px;
+    color: #047857;
+    display: block;
+    margin: 0 auto 12px;
+}

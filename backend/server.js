@@ -7,6 +7,9 @@ const stocksRoutes = require("./routes/stocks");
 const caseStudyRoutes = require("./routes/caseStudy");
 const marketRoutes = require("./routes/market");
 const indicesRoutes = require("./routes/indices");
+const learningRoutes = require("./routes/learning");
+const scoreRoutes = require("./routes/score");
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,6 +38,9 @@ app.use("/api", stocksRoutes);
 app.use("/api", caseStudyRoutes);
 app.use("/api", marketRoutes);
 app.use("/api", indicesRoutes);
+app.use("/api", learningRoutes);
+app.use("/api", scoreRoutes);
+
 
 // Start server
 app.listen(PORT, () => {

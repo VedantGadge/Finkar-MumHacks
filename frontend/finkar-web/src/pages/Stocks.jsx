@@ -319,7 +319,7 @@ const Stocks = () => {
         if (!data || data.length === 0) return '';
 
         const width = 100;
-        const height = 60;
+        const height = 100;
         const padding = 5;
 
         const prices = data.map(d => d.price);
@@ -425,13 +425,14 @@ const Stocks = () => {
 
                         <div className="price-stats">
                             <div className="stat-item">
-                                <span className="stat-label">{t('stocks.startingPrice')}</span>
-                                <span className="stat-value">₹{selectedStock.priceData.starting.toFixed(1)}</span>
-                            </div>
-                            <div className="stat-item">
                                 <span className="stat-label">{t('stocks.currentPrice')}</span>
                                 <span className="stat-value primary">₹{selectedStock.priceData.current.toFixed(1)}</span>
                             </div>
+                            <div className="stat-item">
+                                <span className="stat-label">{t('stocks.startingPrice')}</span>
+                                <span className="stat-value">₹{selectedStock.priceData.starting.toFixed(1)}</span>
+                            </div>
+                            
                             <div className="stat-item">
                                 <span className="stat-label">{t('stocks.change')}</span>
                                 <span className="stat-value positive">
@@ -457,18 +458,18 @@ const Stocks = () => {
 
                         {selectedStock.chartData && (
                             <div className="chart-container-seamless">
-                                <svg viewBox="0 0 100 60" className="price-chart" preserveAspectRatio="none">
+                                <svg viewBox="0 0 100 100" className="price-chart" preserveAspectRatio="none">
                                     <defs>
                                         <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                                             <stop offset="0%" stopColor="#047857" stopOpacity="0.3" />
                                             <stop offset="100%" stopColor="#047857" stopOpacity="0.05" />
                                         </linearGradient>
                                     </defs>
-                                    <line x1="0" y1="15" x2="100" y2="15" stroke="#E5E7EB" strokeWidth="0.3" />
-                                    <line x1="0" y1="30" x2="100" y2="30" stroke="#E5E7EB" strokeWidth="0.3" />
-                                    <line x1="0" y1="45" x2="100" y2="45" stroke="#E5E7EB" strokeWidth="0.3" />
+                                    <line x1="0" y1="25" x2="100" y2="25" stroke="#E5E7EB" strokeWidth="0.3" />
+                                    <line x1="0" y1="50" x2="100" y2="50" stroke="#E5E7EB" strokeWidth="0.3" />
+                                    <line x1="0" y1="75" x2="100" y2="75" stroke="#E5E7EB" strokeWidth="0.3" />
                                     <path
-                                        d={`${getChartPath(selectedStock.chartData)} L 95,55 L 5,55 Z`}
+                                        d={`${getChartPath(selectedStock.chartData)} L 95,95 L 5,95 Z`}
                                         fill="url(#chartGradient)"
                                     />
                                     <motion.path

@@ -1,7 +1,7 @@
 /* Stocks Page Container */
 .stocks-page {
   min-height: 100vh;
-  padding: 20px;
+  padding: 12px;
   padding-bottom: 100px;
   font-family: "DM Sans", sans-serif;
 }
@@ -641,12 +641,19 @@
 .stock-detail-seamless {
   background: white;
   border-radius: 16px;
-  padding: 24px;
+  padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .detail-section-seamless {
-  padding: 16px 0;
+  padding: 10px 0;
+}
+
+.detail-section-seamless h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 12px 0;
 }
 
 .section-divider {
@@ -656,7 +663,7 @@
       #e5e7eb 20%,
       #e5e7eb 80%,
       transparent 100%);
-  margin: 24px 0;
+  margin: 10px 0;
 }
 
 .detail-section {
@@ -676,17 +683,17 @@
 }
 
 .detail-section h3 {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 600;
   color: #1f2937;
-  margin: 0 0 16px 0;
+  margin: 0 0 10px 0;
 }
 
 .stock-meta {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .meta-badge {
@@ -732,9 +739,9 @@
 /* Price Stats - Mobile Optimized */
 .price-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .stat-item {
@@ -744,20 +751,20 @@
 }
 
 .stat-label {
-  font-size: 13px;
+  font-size: 12px !important;
   color: #6b7280;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .stat-value {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px !important;
+  font-weight: 700;
   color: #1f2937;
 }
 
 .stat-value.primary {
   color: #047857;
-  font-size: 22px;
+  font-size: 36px !important;
 }
 
 .stat-value.positive {
@@ -768,10 +775,15 @@
   color: #dc2626;
 }
 
+/* Chart Section Spacing */
+.chart-section-seamless {
+  margin-top: 20px;
+}
+
 /* Chart Container - Seamless */
 .chart-container-seamless {
   background: transparent;
-  padding: 16px 0;
+  padding: 8px 0;
   margin-top: 16px;
 }
 

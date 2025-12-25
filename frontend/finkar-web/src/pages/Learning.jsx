@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
+import Flashcard from '../components/Flashcard';
+import { fetchDailyLearning } from '../services/learningService';
 import './Learning.css';
 
 // Learning Data - All 9 Modules
@@ -655,6 +657,28 @@ const Learning = () => {
     const [progress, setProgress] = useState(getProgress());
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState('all');
+    const [dailyCards, setDailyCards] = useState([]);
+    const [loadingCards, setLoadingCards] = useState(true);
+    const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
+
+    useEffect(() => {
+        const loadDailyLearning = async () => {
+            try {
+                // TODO: Replace with actual user ID from auth context
+                const userId = 123;
+                const data = await fetchDailyLearning(userId);
+                if (data && data.cards) {
+                    setDailyCards(data.cards);
+                }
+            } catch (error) {
+                console.error("Failed to load daily learning cards", error);
+            } finally {
+                setLoadingCards(false);
+            }
+        };
+
+        loadDailyLearning();
+    }, []);
 
     useEffect(() => {
         saveProgress(progress);
@@ -701,22 +725,22 @@ const Learning = () => {
 
         lesson.content.sections.forEach((section) => {
             content += `${section.title}\n${'-'.repeat(section.title.length)}\n\n`;
-            
+
             if (section.text) {
                 content += `${section.text}\n\n`;
             }
-            
+
             if (section.highlight) {
                 content += `► KEY INSIGHT:\n${section.highlight}\n\n`;
             }
-            
+
             if (section.list) {
                 section.list.forEach((item, i) => {
                     content += `  • ${item}\n`;
                 });
                 content += '\n';
             }
-            
+
             if (section.table) {
                 const headers = section.table.headers;
                 const rows = section.table.rows;
@@ -727,7 +751,7 @@ const Learning = () => {
                 });
                 content += '\n';
             }
-            
+
             if (section.formula) {
                 content += `\nFORMULA:\n${section.formula}\n\n`;
             }
@@ -810,6 +834,93 @@ const Learning = () => {
                         <span className="progress-stat-label">{t('learning.remaining')}</span>
                     </div>
                 </div>
+            </motion.div>
+
+            {/* Daily Insights Carousel */}
+            <motion.div
+                className="insights-carousel-section"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.15 }}
+            >
+                <div className="insights-carousel-header">
+                    <h2>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                            <path d="M2 17l10 5 10-5" />
+                            <path d="M2 12l10 5 10-5" />
+                        </svg>
+                        Daily Insights
+                    </h2>
+                    {dailyCards.length > 1 && (
+                        <div className="insights-carousel-nav">
+                            <button
+                                onClick={() => setCurrentInsightIndex(prev => Math.max(0, prev - 1))}
+                                disabled={currentInsightIndex === 0}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="15,18 9,12 15,6" />
+                                </svg>
+                            </button>
+                            <button
+                                onClick={() => setCurrentInsightIndex(prev => Math.min(dailyCards.length - 1, prev + 1))}
+                                disabled={currentInsightIndex === dailyCards.length - 1}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="9,18 15,12 9,6" />
+                                </svg>
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {loadingCards ? (
+                    <div className="insights-loading">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 6v6l4 2" />
+                        </svg>
+                        Loading your insights...
+                    </div>
+                ) : dailyCards.length > 0 ? (
+                    <>
+                        <div className="insights-carousel-track">
+                            <motion.div
+                                className="insights-carousel-inner"
+                                animate={{ x: `-${currentInsightIndex * 100}%` }}
+                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                drag="x"
+                                dragConstraints={{ left: 0, right: 0 }}
+                                dragElastic={0.2}
+                                onDragEnd={(event, info) => {
+                                    const swipeThreshold = 50;
+                                    if (info.offset.x < -swipeThreshold && currentInsightIndex < dailyCards.length - 1) {
+                                        setCurrentInsightIndex(prev => prev + 1);
+                                    } else if (info.offset.x > swipeThreshold && currentInsightIndex > 0) {
+                                        setCurrentInsightIndex(prev => prev - 1);
+                                    }
+                                }}
+                            >
+                                {dailyCards.map((card, index) => (
+                                    <div key={index} className="insights-carousel-slide">
+                                        <Flashcard front={card.front} back={card.back} />
+                                    </div>
+                                ))}
+                            </motion.div>
+                        </div>
+                        <div className="insights-carousel-dots">
+                            {dailyCards.map((_, index) => (
+                                <button
+                                    key={index}
+                                    className={`insights-carousel-dot ${index === currentInsightIndex ? 'active' : ''}`}
+                                    onClick={() => setCurrentInsightIndex(index)}
+                                />
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <div className="insights-empty">Check back tomorrow for new insights!</div>
+                )}
             </motion.div>
 
             {/* Search */}

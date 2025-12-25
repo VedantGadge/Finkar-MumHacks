@@ -21,14 +21,13 @@ function Tracker() {
     const { t } = useLanguage();
 
     // 1. Transactions Data - fetched from API
-    const [transactions, setTransactions] = useState([]);
-    const [apiBalance, setApiBalance] = useState(null);
+    const [transactions, setTransactions] = useLocalStorage('tracker_transactions', []);
+    const [apiBalance, setApiBalance] = useLocalStorage('tracker_balance', null);
 
     // Loading and error states for transactions
-    const [transactionsLoading, setTransactionsLoading] = useState(true);
+    const [transactionsLoading, setTransactionsLoading] = useState(() => !localStorage.getItem('tracker_transactions'));
     const [transactionsError, setTransactionsError] = useState(null);
 
-    // 2. Budget Data
     // 2. Budget Data
     const [budgets, setBudgets] = useLocalStorage('tracker_budgets', [
         { id: 1, category: 'Food', planned: 10000, actual: 8200, month: 'Nov 2025' },
@@ -37,20 +36,20 @@ function Tracker() {
     ]);
 
     // 3. Loans Data - fetched from API
-    const [loans, setLoans] = useState([]);
+    const [loans, setLoans] = useLocalStorage('tracker_loans', []);
 
     // 4. Credit Cards Data - fetched from API
-    const [creditCards, setCreditCards] = useState([]);
+    const [creditCards, setCreditCards] = useLocalStorage('tracker_credit_cards', []);
 
     // Loading and error states for liabilities
-    const [liabilitiesLoading, setLiabilitiesLoading] = useState(true);
+    const [liabilitiesLoading, setLiabilitiesLoading] = useState(() => !localStorage.getItem('tracker_loans') || !localStorage.getItem('tracker_credit_cards'));
     const [liabilitiesError, setLiabilitiesError] = useState(null);
 
     // 5. Goals Data - fetched from API
-    const [goals, setGoals] = useState([]);
+    const [goals, setGoals] = useLocalStorage('tracker_goals', []);
 
     // Loading and error states for goals
-    const [goalsLoading, setGoalsLoading] = useState(true);
+    const [goalsLoading, setGoalsLoading] = useState(() => !localStorage.getItem('tracker_goals'));
     const [goalsError, setGoalsError] = useState(null);
 
     // 6. Categories Data
@@ -898,14 +897,30 @@ function Tracker() {
             </div>
 
             <motion.div className="stats-summary" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
-                <div className="stat-item">
-                    <span className="stat-label">{t('dashboard.balance')}</span>
-                    <span className="stat-value balance">₹{totalBalance.toLocaleString()}</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-label">{t('common.thisMonth')}</span>
-                    <span className="stat-value expense">₹{monthlySpending.toLocaleString()}</span>
-                </div>
+                {transactionsLoading && !totalBalance && !monthlySpending ? (
+                    // Simple loading placeholder matching the stat item layout
+                    <>
+                        <div className="stat-item loading">
+                            <span className="stat-label">{t('dashboard.balance')}</span>
+                            <div className="skeleton-text" style={{ height: '32px', width: '120px', backgroundColor: '#e5e7eb', borderRadius: '4px', marginTop: '4px' }}></div>
+                        </div>
+                        <div className="stat-item loading">
+                            <span className="stat-label">{t('common.thisMonth')}</span>
+                            <div className="skeleton-text" style={{ height: '32px', width: '100px', backgroundColor: '#e5e7eb', borderRadius: '4px', marginTop: '4px' }}></div>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="stat-item">
+                            <span className="stat-label">{t('dashboard.balance')}</span>
+                            <span className="stat-value balance">₹{totalBalance.toLocaleString()}</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-label">{t('common.thisMonth')}</span>
+                            <span className="stat-value expense">₹{monthlySpending.toLocaleString()}</span>
+                        </div>
+                    </>
+                )}
             </motion.div>
 
             <motion.div className="recent-preview" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
