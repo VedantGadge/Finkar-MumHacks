@@ -38,6 +38,18 @@ function App() {
     return () => clearTimeout(t);
   }, []);
 
+  // Check for Setu redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('details_flow') === 'setu' && params.get('status') === 'success') {
+      setIsLoggedIn(true);
+      localStorage.setItem('finkar_logged_in', 'true');
+
+      // Clear query params to clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
   };
@@ -50,11 +62,11 @@ function App() {
     if (showSplash) {
       return <Splash />;
     }
-    
+
     if (!isLoggedIn) {
       return <Login onLoginSuccess={handleLoginSuccess} />;
     }
-    
+
     return <Dashboard onLogout={handleLogout} />;
   };
 
