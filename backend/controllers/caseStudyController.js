@@ -1,5 +1,33 @@
 const { API_BASE_URL } = require("../config/constants");
 
+// Helper function to sanitize article data with default values for null fields
+const sanitizeArticleData = (data) => {
+  if (!data) return data;
+  
+  // If the response contains articles array, sanitize each article
+  if (data.articles && Array.isArray(data.articles)) {
+    data.articles = data.articles.map((article) => ({
+      ...article,
+      author: article.author || "Unknown",
+      title: article.title || "Untitled",
+      source: article.source || "Unknown Source",
+      published_at: article.published_at || new Date().toISOString(),
+    }));
+  }
+  
+  // If the response itself is an article-like object
+  if (data.author === null || data.author === undefined) {
+    data.author = "Unknown";
+  }
+  
+  // Handle nested case_study object if present
+  if (data.case_study) {
+    data.case_study = sanitizeArticleData(data.case_study);
+  }
+  
+  return data;
+};
+
 // POST /api/case-study - Generate case study for a ticker
 const generateCaseStudy = async (req, res) => {
   try {
@@ -16,9 +44,9 @@ const generateCaseStudy = async (req, res) => {
 
     const requestBody = {
       ticker,
-      company_name: "string",
-      use_finbert: true,
-      use_groq: true,
+      company_name: company_name || ticker.replace(".NS", ""),
+      use_finbert: use_finbert !== undefined ? use_finbert : true,
+      use_groq: use_groq !== undefined ? use_groq : true,
     };
 
     console.log("Sending to External API:", JSON.stringify(requestBody, null, 2));
@@ -51,8 +79,12 @@ const generateCaseStudy = async (req, res) => {
     }
 
     console.log(`Successfully generated case study for ${ticker}`);
-    console.log("External API Response Data:", JSON.stringify(data, null, 2));
-    res.json(data);
+    
+    // Sanitize the response data to handle null fields
+    const sanitizedData = sanitizeArticleData(data);
+    
+    console.log("External API Response Data:", JSON.stringify(sanitizedData, null, 2));
+    res.json(sanitizedData);
   } catch (error) {
     console.error("Error generating case study:", error);
     res.status(500).json({

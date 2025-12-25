@@ -338,8 +338,8 @@
 /* Table headers */
 .tracker-table-header {
     display: grid;
-    grid-template-columns: 115px 130px 1fr;
-    gap: 16px;
+    grid-template-columns: 110px 100px 1fr;
+    gap: 8px;
     margin-bottom: 8px;
     padding: 0 18px;
 }
@@ -354,8 +354,8 @@
 
 .tracker-row {
     display: grid;
-    grid-template-columns: 115px 130px 1fr;
-    gap: 16px;
+    grid-template-columns: 110px 100px 1fr;
+    gap: 8px;
     padding: 18px;
     border-radius: 12px;
     transition: all 0.2s;
@@ -367,10 +367,13 @@
 
 /* Container for swipe rows so we can add a subtle divider */
 .swipe-row-container {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    border-bottom: none;
+    margin-bottom: 6px;
+    background: white;
+    border-radius: 12px;
 }
 .swipe-row-container:last-child {
-    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .tracker-row.income-row {

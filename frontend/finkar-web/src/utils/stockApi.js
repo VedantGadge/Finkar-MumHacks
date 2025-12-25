@@ -47,9 +47,9 @@ export const generateCaseStudy = async (
   try {
     const requestBody = {
       ticker,
-      company_name: "string",
-      use_finbert: true,
-      use_groq: true,
+      company_name: companyName || ticker.replace(".NS", ""),
+      use_finbert: useFinbert,
+      use_groq: useGroq,
     };
 
     console.log("Frontend sending to Backend:", JSON.stringify(requestBody, null, 2));

@@ -149,17 +149,20 @@ function Tracker() {
                 const goalsArray = Array.isArray(data) ? data : (data.goals || []);
 
                 // Map goals data from API to component format
+                // API returns: saved, target, percent, deadline
                 const mappedGoals = goalsArray.map(goal => {
-                    const current = goal.current_amount || 0;
-                    const target = goal.target_amount || 1;
-                    const percent = goal.progress_percent || (target > 0 ? (current / target) * 100 : 0);
+                    // Handle both old format (current_amount, target_amount) and new format (saved, target)
+                    const current = goal.saved ?? goal.current_amount ?? 0;
+                    const target = goal.target ?? goal.target_amount ?? 1;
+                    const percent = goal.percent ?? goal.progress_percent ?? (target > 0 ? (current / target) * 100 : 0);
+                    const deadline = goal.deadline ?? goal.target_date ?? null;
 
                     return {
                         id: goal.id,
                         name: goal.name,
-                        target: goal.target_amount,
+                        target: target,
                         current: current,
-                        date: goal.target_date,
+                        date: deadline,
                         percent: percent
                     };
                 });
@@ -634,16 +637,17 @@ function Tracker() {
                                                                 const data = await fetchGoals(userId);
                                                                 const goalsArray = Array.isArray(data) ? data : (data.goals || []);
                                                                 const mappedGoals = goalsArray.map(goal => {
-                                                                    const current = goal.current_amount || 0;
-                                                                    const target = goal.target_amount || 1;
-                                                                    const percent = goal.progress_percent || (target > 0 ? (current / target) * 100 : 0);
+                                                                    const current = goal.saved ?? goal.current_amount ?? 0;
+                                                                    const target = goal.target ?? goal.target_amount ?? 1;
+                                                                    const percent = goal.percent ?? goal.progress_percent ?? (target > 0 ? (current / target) * 100 : 0);
+                                                                    const deadline = goal.deadline ?? goal.target_date ?? null;
 
                                                                     return {
                                                                         id: goal.id,
                                                                         name: goal.name,
-                                                                        target: goal.target_amount,
+                                                                        target: target,
                                                                         current: current,
-                                                                        date: goal.target_date,
+                                                                        date: deadline,
                                                                         percent: percent
                                                                     };
                                                                 });
@@ -789,16 +793,17 @@ function Tracker() {
                                                             const data = await fetchGoals(userId);
                                                             const goalsArray = Array.isArray(data) ? data : (data.goals || []);
                                                             const mappedGoals = goalsArray.map(goal => {
-                                                                const current = goal.current_amount || 0;
-                                                                const target = goal.target_amount || 1;
-                                                                const percent = goal.progress_percent || (target > 0 ? (current / target) * 100 : 0);
+                                                                const current = goal.saved ?? goal.current_amount ?? 0;
+                                                                const target = goal.target ?? goal.target_amount ?? 1;
+                                                                const percent = goal.percent ?? goal.progress_percent ?? (target > 0 ? (current / target) * 100 : 0);
+                                                                const deadline = goal.deadline ?? goal.target_date ?? null;
 
                                                                 return {
                                                                     id: goal.id,
                                                                     name: goal.name,
-                                                                    target: goal.target_amount,
+                                                                    target: target,
                                                                     current: current,
-                                                                    date: goal.target_date,
+                                                                    date: deadline,
                                                                     percent: percent
                                                                 };
                                                             });
