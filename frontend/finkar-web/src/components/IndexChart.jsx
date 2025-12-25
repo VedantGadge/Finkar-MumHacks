@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { motion } from 'framer-motion';
 
 const IndexChart = ({ data, title = "Index", gradientId = "indexGradient", color = "#047857" }) => {
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -19,7 +20,11 @@ const IndexChart = ({ data, title = "Index", gradientId = "indexGradient", color
     const strokeWidth = windowWidth > 480 ? 2.5 : 2;
 
     return (
-        <section className="nifty50-fullwidth-section">
+        <motion.section
+            className="nifty50-fullwidth-section"
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+        >
             <div className="nifty50-header">
                 <h3>{title} Trend</h3>
                 <p className="nifty50-period">Last 1 Month</p>
@@ -86,7 +91,7 @@ const IndexChart = ({ data, title = "Index", gradientId = "indexGradient", color
                             const date = new Date(value);
                             return date.toLocaleDateString('en-IN');
                         }}
-                        formatter={(value) => [`₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Close']}
+                        formatter={(value) => [`₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Price']}
                     />
                     <Line
                         type="monotone"
@@ -99,7 +104,7 @@ const IndexChart = ({ data, title = "Index", gradientId = "indexGradient", color
                     />
                 </LineChart>
             </ResponsiveContainer>
-        </section>
+        </motion.section>
     );
 };
 

@@ -48,6 +48,12 @@ function Dashboard({ onLogout }) {
     const [showInputDialog, setShowInputDialog] = useState(false);
     const [showBillScanner, setShowBillScanner] = useState(false);
 
+    // Reset scroll on tab change
+    useEffect(() => {
+        const dashboard = document.querySelector('.dashboard');
+        if (dashboard) dashboard.scrollTop = 0;
+    }, [activeTab]);
+
     // Trigger squish effect when tab changes
     useEffect(() => {
         setIsSquished(true);
@@ -545,11 +551,70 @@ function Dashboard({ onLogout }) {
                 }}
             />
 
-            {activeTab === 0 && renderHome()}
-            {activeTab === 1 && <Tracker />}
-            {activeTab === 2 && <Chatbot />}
-            {activeTab === 3 && <Learning />}
-            {activeTab === 4 && <Stocks />}
+            {/* Tab Content with Transitions */}
+            {/* Tab Content with Transitions */}
+            <AnimatePresence mode="wait">
+                {activeTab === 0 && (
+                    <motion.div
+                        key="home"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        style={{ width: '100%' }}
+                    >
+                        {renderHome()}
+                    </motion.div>
+                )}
+                {activeTab === 1 && (
+                    <motion.div
+                        key="tracker"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        style={{ width: '100%' }}
+                    >
+                        <Tracker />
+                    </motion.div>
+                )}
+                {activeTab === 2 && (
+                    <motion.div
+                        key="chatbot"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        style={{ width: '100%' }}
+                    >
+                        <Chatbot />
+                    </motion.div>
+                )}
+                {activeTab === 3 && (
+                    <motion.div
+                        key="learning"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        style={{ width: '100%' }}
+                    >
+                        <Learning />
+                    </motion.div>
+                )}
+                {activeTab === 4 && (
+                    <motion.div
+                        key="stocks"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        style={{ width: '100%' }}
+                    >
+                        <Stocks />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Bottom Navigation */}
             <nav className="bottom-nav">

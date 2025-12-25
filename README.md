@@ -1,5 +1,5 @@
 # 💰 FinKar
-
+# 4-HODs
 <div align="center">
 
 ![FinKar](https://img.shields.io/badge/FinKar-Financial%20Companion-10B981?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCAxOGMtNC40MSAwLTgtMy41OS04LThzMy41OS04IDgtOCA4IDMuNTkgOCA4LTMuNTkgOC04IDh6IiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGQ9Ik0xMi41IDdIMTF2Nmw1LjI1IDMuMTUuNzUtMS4yMy00LjUtMi42N1Y3eiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=)
@@ -44,7 +44,7 @@
 
 ### 📚 **Learning Hub**
 
-- **Financial Literacy Modules** – 9 comprehensive modules with 22+ lessons
+- **Financial Literacy Modules** – [View Detailed Curriculum](FINANCIAL_MASTERY.md) with 9 comprehensive modules and 25+ lessons
 - **Interactive Content** – Learn about budgeting, investing, fraud prevention, and more
 - **Case Studies** – Real-world financial case studies for better understanding
 

@@ -8,6 +8,7 @@
     font-family: 'DM Sans';
     position: relative;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Header */
@@ -433,49 +434,56 @@
 }
 
 /* Bottom Navigation */
+/* Bottom Navigation - Floating Island */
+/* Bottom Navigation - Floating Island with Glassmorphism */
+/* Bottom Navigation - Floating Island with Glassmorphism */
 .bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: transparent;
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    background: rgba(255, 255, 255, 0.45);
+    /* Increased transparency */
+    backdrop-filter: blur(12px) saturate(180%);
+    /* Reduced blur slightly */
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 16px var(--page-h-padding) 20px;
+    padding: 8px;
     z-index: 100;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    /* More subtle border */
+    box-shadow:
+        0 8px 32px 0 rgba(31, 38, 135, 0.15),
+        0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    max-width: 500px;
+    margin: 0 auto;
 }
 
+/* Remove the old gradient mask */
 .bottom-nav::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    background: linear-gradient(to bottom,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.55) 40%,
-            rgba(255, 255, 255, 0.8) 100%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%);
-    mask-image: linear-gradient(to bottom, transparent, black 30%);
-    pointer-events: none;
+    display: none;
 }
 
-/* Sliding Indicator - No CSS transition, framer-motion handles animation */
+/* Sliding Indicator */
 .nav-indicator {
     position: absolute;
-    width: calc((100% - (var(--page-h-padding) * 2)) / 5);
-    height: 44px;
-    /* smaller, less dominant */
-    background: rgba(4, 120, 87, 0.10);
-    /* subtle tint */
-    border: 1px solid rgba(4, 120, 87, 0.12);
-    border-radius: 12px;
+    /* (100% - 16px padding) / 5 items */
+    width: calc((100% - 16px) / 5);
+    height: 48px;
+    /* Match nav-item height */
+    top: 8px;
+    /* Match padding-top */
+    bottom: 8px;
+    background: #ECFDF5;
+    /* border: 1px solid rgba(4, 120, 87, 0.1); */
+    border-radius: 16px;
     z-index: 1;
-    box-shadow: 0 8px 18px rgba(4, 120, 87, 0.06);
-    /* softer shadow */
-    left: var(--page-h-padding);
+    left: 8px;
+    /* Match padding-left */
+    box-shadow: none;
 }
 
 .nav-item {

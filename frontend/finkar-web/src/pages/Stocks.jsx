@@ -2,12 +2,35 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon, LaptopIcon, HomeIcon, RocketIcon, HeartIcon, LightningBoltIcon, BackpackIcon, CubeIcon, LayersIcon, PieChartIcon } from '@radix-ui/react-icons';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { fetchTickers, generateCaseStudy, getTickerDisplayName, fetchMarketIndices, fetchSectorPerformance, fetchMultipleStockData, fetchNifty50Historical, fetchSensexHistorical, fetchBankNiftyHistorical } from '../utils/stockApi';
+import { fetchTickers, generateCaseStudy, getTickerDisplayName, fetchMarketIndices, fetchSectorPerformance, fetchMultipleStockData, fetchNifty50Historical, fetchSensexHistorical, fetchBankNiftyHistorical, fetchStockHistorical } from '../utils/stockApi';
 import { mapApiToStockData } from '../utils/stockMapper';
 import useBackButton from '../hooks/useBackButton';
 import IndexChart from '../components/IndexChart';
+import TechnicalStockChart from '../components/TechnicalStockChart';
+import VolumeChart from '../components/VolumeChart';
+import { calculateRSI, calculateSMA, calculateBollingerBands } from '../utils/technicalIndicators';
 import { useLanguage } from '../contexts/LanguageContext';
 import './Stocks.css';
+
+// Animation variants - opacity only, no Y translation to prevent snapping
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.05
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { duration: 0.4, ease: "easeOut" }
+    }
+};
 
 const Stocks = () => {
     const { t } = useLanguage();
@@ -29,6 +52,9 @@ const Stocks = () => {
     const [nifty50Data, setNifty50Data] = useState(null);
     const [sensexData, setSensexData] = useState(null);
     const [bankNiftyData, setBankNiftyData] = useState(null);
+    const [historicalData, setHistoricalData] = useState([]);
+    const [technicalIndicators, setTechnicalIndicators] = useState(null);
+    const [historicalPeriod, setHistoricalPeriod] = useState('1mo');
     const carouselRef = useRef(null);
     const interactionTimeoutRef = useRef(null);
     const isInteractingRef = useRef(false);
@@ -186,11 +212,40 @@ const Stocks = () => {
         setFilteredTickers(filtered.slice(0, 10));
     }, [searchQuery, availableTickers]);
 
+    const fetchHistory = async (ticker, period) => {
+        try {
+            const history = await fetchStockHistorical(ticker, period);
+            if (history && history.data) {
+                setHistoricalData(history.data);
+
+                // Calculate technical indicators
+                const closes = history.data.map(d => d.close);
+                const rsi = calculateRSI(closes, 14);
+                const sma20 = calculateSMA(closes, 20);
+                const sma50 = calculateSMA(closes, 50);
+                const sma200 = calculateSMA(closes, 200);
+                const bb = calculateBollingerBands(closes, 20, 2);
+
+                setTechnicalIndicators({
+                    rsi,
+                    sma20,
+                    sma50,
+                    sma200,
+                    bb
+                });
+            }
+        } catch (histErr) {
+            console.error('Failed to fetch historical data:', histErr);
+        }
+    };
+
     const handleStockSelect = async (ticker) => {
         if (loadedCaseStudies[ticker]) {
             setSelectedStock(loadedCaseStudies[ticker]);
             setCurrentLesson(0);
             setSearchQuery('');
+            setHistoricalPeriod('1mo');
+            fetchHistory(ticker, '1mo');
             return;
         }
 
@@ -201,6 +256,10 @@ const Stocks = () => {
             const mappedData = mapApiToStockData(caseStudyData);
 
             setLoadedCaseStudies(prev => ({ ...prev, [ticker]: mappedData }));
+
+            // Fetch historical data for candlestick chart
+            setHistoricalPeriod('1mo');
+            fetchHistory(ticker, '1mo');
 
             setSelectedStock(mappedData);
             setCurrentLesson(0);
@@ -213,8 +272,16 @@ const Stocks = () => {
         }
     };
 
+    const handlePeriodChange = (period) => {
+        if (!selectedStock) return;
+        setHistoricalPeriod(period);
+        fetchHistory(selectedStock.symbol, period);
+    };
+
     const handleBack = () => {
         setSelectedStock(null);
+        setHistoricalData([]);
+        setTechnicalIndicators(null);
     };
 
     // Handle Android back button when in detail view
@@ -306,6 +373,49 @@ const Stocks = () => {
                                 </p>
                             </div>
                         </div>
+
+                        {/* Candlestick Chart from External API */}
+                        <div className="chart-section-seamless">
+                            <div className="chart-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <h3>Price Action</h3>
+                                <div className="period-selector" style={{ display: 'flex', gap: '8px' }}>
+                                    {['1mo', '3mo', '6mo'].map((period) => (
+                                        <button
+                                            key={period}
+                                            onClick={() => handlePeriodChange(period)}
+                                            style={{
+                                                padding: '6px 12px',
+                                                borderRadius: '20px',
+                                                border: 'none',
+                                                background: historicalPeriod === period ? '#047857' : '#E5E7EB',
+                                                color: historicalPeriod === period ? 'white' : '#374151',
+                                                cursor: 'pointer',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '500',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            {period === '1mo' ? '1M' : period === '3mo' ? '3M' : '6M'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {historicalData && historicalData.length > 0 ? (
+                                <>
+                                    <TechnicalStockChart
+                                        data={historicalData}
+                                        indicators={technicalIndicators}
+                                        title={selectedStock.name}
+                                    />
+                                    <VolumeChart data={historicalData} />
+                                </>
+                            ) : (
+                                <div style={{ padding: '40px', textAlign: 'center', color: '#6B7280', background: '#F9FAFB', borderRadius: '12px' }}>
+                                    Loading chart data...
+                                </div>
+                            )}
+                        </div>
                     </section>
 
                     <div className="section-divider"></div>
@@ -328,6 +438,21 @@ const Stocks = () => {
                                     +₹{selectedStock.priceData.change.toFixed(1)} ({selectedStock.priceData.changePercent}%)
                                 </span>
                             </div>
+                            {technicalIndicators?.rsi && (
+                                <div className="stat-item">
+                                    <span className="stat-label">RSI (14)</span>
+                                    <span className="stat-value" style={{
+                                        color: technicalIndicators.rsi.filter(x => x).slice(-1)[0] > 70 ? '#EF4444' :
+                                            technicalIndicators.rsi.filter(x => x).slice(-1)[0] < 30 ? '#10B981' : '#6B7280'
+                                    }}>
+                                        {technicalIndicators.rsi.filter(x => x).slice(-1)[0]?.toFixed(1)}
+                                        <span style={{ fontSize: '10px', marginLeft: '6px', fontWeight: '500', opacity: 0.8 }}>
+                                            {technicalIndicators.rsi.filter(x => x).slice(-1)[0] > 70 ? 'Overbought' :
+                                                technicalIndicators.rsi.filter(x => x).slice(-1)[0] < 30 ? 'Oversold' : 'Neutral'}
+                                        </span>
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {selectedStock.chartData && (
@@ -486,37 +611,28 @@ const Stocks = () => {
 
     return (
         <div className="stocks-page">
-            {!isInitialLoadComplete && (
-                <motion.div
-                    className="loading-overlay"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                >
-                    <div className="loading-spinner"></div>
-                    <p>{t('stocks.loadingCaseStudies')}</p>
-                </motion.div>
-            )}
+
 
             <motion.h2
-                initial={{ y: 16, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.45 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
             >
                 {t('stocks.title')}
             </motion.h2>
             <motion.p
                 className="page-subtitle"
-                initial={{ y: 18, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.45, delay: 0.05 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.05 }}
             >
                 {t('stocks.subtitle')}
             </motion.p>
 
             <motion.div
                 className="search-container"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ delay: 0.1 }}
             >
                 <MagnifyingGlassIcon className="search-icon" />
@@ -585,151 +701,258 @@ const Stocks = () => {
                 </motion.div>
             )}
 
-            <section className="featured-section">
-                <h3>{t('stocks.featuredCompanies')}</h3>
-                <div className="stocks-carousel" ref={carouselRef}>
-                    {[...featuredTickers, ...featuredTickers, ...featuredTickers, ...featuredTickers].map((symbol, index) => {
-                        const stockData = quickStockData[symbol];
-                        const isLoading = loadingStates[symbol];
-
-                        if (isLoading || !stockData) return (
-                            <motion.div
-                                key={`${symbol}-${index}`}
-                                className="stock-card-carousel loading"
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.15 + (index % 4) * 0.05 }}
-                            >
-                                <div className="skeleton-header">
-                                    <div>
-                                        <div className="skeleton skeleton-title"></div>
-                                        <div className="skeleton skeleton-subtitle"></div>
+            {/* Wrap main content in a staggered container */}
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                <motion.section className="featured-section" variants={itemVariants}>
+                    <h3>{t('stocks.featuredCompanies')}</h3>
+                    <div className="stocks-carousel" ref={carouselRef}>
+                        {isLoadingTickers ? (
+                            /* Show dummy skeletons while tickers are loading */
+                            Array(4).fill(0).map((_, index) => (
+                                <motion.div
+                                    key={`skeleton-${index}`}
+                                    className="stock-card-carousel loading"
+                                >
+                                    <div className="skeleton-header">
+                                        <div>
+                                            <div className="skeleton skeleton-title"></div>
+                                            <div className="skeleton skeleton-subtitle"></div>
+                                        </div>
+                                        <div className="skeleton skeleton-badge"></div>
                                     </div>
-                                    <div className="skeleton skeleton-badge"></div>
-                                </div>
-                                <div className="skeleton skeleton-price"></div>
-                                <div className="skeleton-footer">
-                                    <div className="skeleton skeleton-text"></div>
-                                    <div className="skeleton skeleton-signal"></div>
-                                </div>
-                            </motion.div>
-                        );
-
-                        const isPositive = stockData.price_change_pct >= 0;
-
-                        return (
-                            <motion.div
-                                key={`${symbol}-${index}`}
-                                className="stock-card-carousel"
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.15 + (index % 4) * 0.05 }}
-                                onClick={() => handleStockSelect(symbol)}
-                            >
-                                <div className="stock-header">
-                                    <div>
-                                        <h4>{symbol.replace('.NS', '')}</h4>
-                                        <p className="company-name">{getTickerDisplayName(symbol)}</p>
+                                    <div className="skeleton skeleton-price"></div>
+                                    <div className="skeleton-footer">
+                                        <div className="skeleton skeleton-text"></div>
+                                        <div className="skeleton skeleton-signal"></div>
                                     </div>
-                                    <span
-                                        className={`change-badge ${isPositive ? 'positive' : 'negative'}`}
+                                </motion.div>
+                            ))
+                        ) : (
+                            /* Actual Data Map */
+                            [...featuredTickers, ...featuredTickers, ...featuredTickers, ...featuredTickers].map((symbol, index) => {
+                                const stockData = quickStockData[symbol];
+                                const isLoading = loadingStates[symbol];
+
+                                if (isLoading || !stockData) return (
+                                    <motion.div
+                                        key={`${symbol}-${index}`}
+                                        className="stock-card-carousel loading"
+                                    // Remove individual animations here to let parent coordinate or keep simple
+                                    // Keeping individual staggered entrance for cards could also work but might be too much.
+                                    // Let's keep specific card animation but controlled by their own staggering if needed.
+                                    // For simplicity in carousel, we just fade them in.
                                     >
-                                        {isPositive ? '+' : ''}{stockData.price_change_pct}%
-                                    </span>
-                                </div>
-                                <div className="stock-price">
-                                    ₹{stockData.end_price.toFixed(1)}
-                                </div>
-                                <div className="stock-footer">
-                                    <span className="stock-sector">{t('stocks.volatility')}: {stockData.volatility}%</span>
-                                    <span
-                                        className="stock-signal"
-                                        style={{ color: isPositive ? '#047857' : '#DC2626' }}
+                                        <div className="skeleton-header">
+                                            <div>
+                                                <div className="skeleton skeleton-title"></div>
+                                                <div className="skeleton skeleton-subtitle"></div>
+                                            </div>
+                                            <div className="skeleton skeleton-badge"></div>
+                                        </div>
+                                        <div className="skeleton skeleton-price"></div>
+                                        <div className="skeleton-footer">
+                                            <div className="skeleton skeleton-text"></div>
+                                            <div className="skeleton skeleton-signal"></div>
+                                        </div>
+                                    </motion.div>
+                                );
+
+                                const isPositive = stockData.price_change_pct >= 0;
+
+                                return (
+                                    <motion.div
+                                        key={`${symbol}-${index}`}
+                                        className="stock-card-carousel"
+                                        onClick={() => handleStockSelect(symbol)}
+                                        whileHover={{ scale: 1.05, y: -5 }}
+                                        whileTap={{ scale: 0.95 }}
                                     >
-                                        {isPositive ? t('stocks.gaining') : t('stocks.declining')}
-                                    </span>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            </section>
+                                        <div className="stock-header">
+                                            <div>
+                                                <h4>{symbol.replace('.NS', '')}</h4>
+                                                <p className="company-name">{getTickerDisplayName(symbol)}</p>
+                                            </div>
+                                            <span
+                                                className={`change-badge ${isPositive ? 'positive' : 'negative'}`}
+                                            >
+                                                {isPositive ? '+' : ''}{stockData.price_change_pct}%
+                                            </span>
+                                        </div>
+                                        <div className="stock-price">
+                                            ₹{stockData.end_price.toFixed(1)}
+                                        </div>
+                                        <div className="stock-footer">
+                                            <span className="stock-sector">{t('stocks.volatility')}: {stockData.volatility}%</span>
+                                            <span
+                                                className="stock-signal"
+                                                style={{ color: isPositive ? '#047857' : '#DC2626' }}
+                                            >
+                                                {isPositive ? t('stocks.gaining') : t('stocks.declining')}
+                                            </span>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })
+                        )}
+                    </div>
+                </motion.section>
 
-            {nifty50Data && nifty50Data.data && <IndexChart data={nifty50Data} title="Nifty 50" gradientId="niftyGradient" color="#047857" />}
-            {sensexData && sensexData.data && <IndexChart data={sensexData} title="Sensex" gradientId="sensexGradient" color="#2563eb" />}
-            {bankNiftyData && bankNiftyData.data && <IndexChart data={bankNiftyData} title="Bank Nifty" gradientId="bankNiftyGradient" color="#7c3aed" />}
+                <motion.div variants={itemVariants}>
+                    {nifty50Data && nifty50Data.data ? (
+                        <IndexChart data={nifty50Data} title="Nifty 50" gradientId="niftyGradient" color="#047857" />
+                    ) : (
+                        <div className="index-chart-skeleton">
+                            <div className="skeleton-chart-header">
+                                <div className="skeleton skeleton-title-lg"></div>
+                                <div className="skeleton skeleton-subtitle-sm"></div>
+                            </div>
+                            <div className="skeleton-chart-summary">
+                                <div className="skeleton skeleton-stat"></div>
+                                <div className="skeleton skeleton-stat"></div>
+                                <div className="skeleton skeleton-stat"></div>
+                                <div className="skeleton skeleton-stat"></div>
+                            </div>
+                            <div className="skeleton-chart-area" style={{ height: window.innerWidth > 768 ? '400px' : window.innerWidth > 480 ? '280px' : '220px' }}>
+                                <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="skeleton-wave">
+                                    <path d="M0,20 Q10,15 20,22 T40,18 T60,25 T80,15 T100,20" fill="none" stroke="#e5e7eb" strokeWidth="2" />
+                                </svg>
+                            </div>
+                        </div>
+                    )}
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                    {sensexData && sensexData.data ? (
+                        <IndexChart data={sensexData} title="Sensex" gradientId="sensexGradient" color="#2563eb" />
+                    ) : (
+                        <div className="index-chart-skeleton">
+                            <div className="skeleton-chart-header">
+                                <div className="skeleton skeleton-title-lg"></div>
+                                <div className="skeleton skeleton-subtitle-sm"></div>
+                            </div>
+                            <div className="skeleton-chart-summary">
+                                <div className="skeleton skeleton-stat"></div>
+                                <div className="skeleton skeleton-stat"></div>
+                                <div className="skeleton skeleton-stat"></div>
+                                <div className="skeleton skeleton-stat"></div>
+                            </div>
+                            <div className="skeleton-chart-area" style={{ height: window.innerWidth > 768 ? '400px' : window.innerWidth > 480 ? '280px' : '220px' }}>
+                                <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="skeleton-wave">
+                                    <path d="M0,25 Q15,20 25,28 T50,22 T75,30 T100,25" fill="none" stroke="#e5e7eb" strokeWidth="2" />
+                                </svg>
+                            </div>
+                        </div>
+                    )}
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                    {bankNiftyData && bankNiftyData.data ? (
+                        <IndexChart data={bankNiftyData} title="Bank Nifty" gradientId="bankNiftyGradient" color="#7c3aed" />
+                    ) : (
+                        <div className="index-chart-skeleton">
+                            <div className="skeleton-chart-header">
+                                <div className="skeleton skeleton-title-lg"></div>
+                                <div className="skeleton skeleton-subtitle-sm"></div>
+                            </div>
+                            <div className="skeleton-chart-summary">
+                                <div className="skeleton skeleton-stat"></div>
+                                <div className="skeleton skeleton-stat"></div>
+                                <div className="skeleton skeleton-stat"></div>
+                                <div className="skeleton skeleton-stat"></div>
+                            </div>
+                            <div className="skeleton-chart-area" style={{ height: window.innerWidth > 768 ? '400px' : window.innerWidth > 480 ? '280px' : '220px' }}>
+                                <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="skeleton-wave">
+                                    <path d="M0,22 Q12,18 22,26 T45,20 T68,28 T100,22" fill="none" stroke="#e5e7eb" strokeWidth="2" />
+                                </svg>
+                            </div>
+                        </div>
+                    )}
+                </motion.div>
 
 
-            <section className="sector-heatmap-section">
-                <h3>{t('stocks.sectorPerformance')}</h3>
-                <div className="sector-heatmap-grid">
-                    {sectorPerformance.map((sector, i) => {
-                        const isPositive = sector.performance > 0;
-                        const isNeutral = Math.abs(sector.performance) < 0.5;
-                        const intensity = Math.min(Math.abs(sector.performance) / 3, 1);
+                <motion.section className="sector-heatmap-section" variants={itemVariants}>
+                    <h3>{t('stocks.sectorPerformance')}</h3>
+                    <div className="sector-heatmap-grid">
+                        {sectorPerformance.length === 0 ? (
+                            /* Skeleton Cells */
+                            Array(8).fill(0).map((_, i) => (
+                                <div key={i} className="skeleton-sector-cell"></div>
+                            ))
+                        ) : (
+                            sectorPerformance.map((sector, i) => {
+                                const isPositive = sector.performance > 0;
+                                const isNeutral = Math.abs(sector.performance) < 0.5;
+                                const intensity = Math.min(Math.abs(sector.performance) / 3, 1);
 
-                        let backgroundColor;
-                        if (isNeutral) {
-                            backgroundColor = 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)';
-                        } else if (isPositive) {
-                            const baseIntensity = 0.08 + intensity * 0.25;
-                            const topIntensity = baseIntensity * 0.8;
-                            backgroundColor = `linear-gradient(135deg, rgba(16, 185, 129, ${topIntensity}) 0%, rgba(5, 150, 105, ${baseIntensity}) 100%)`;
-                        } else {
-                            const baseIntensity = 0.08 + intensity * 0.25;
-                            const topIntensity = baseIntensity * 0.8;
-                            backgroundColor = `linear-gradient(135deg, rgba(248, 113, 113, ${topIntensity}) 0%, rgba(220, 38, 38, ${baseIntensity}) 100%)`;
-                        }
+                                let backgroundColor;
+                                if (isNeutral) {
+                                    backgroundColor = 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)';
+                                } else if (isPositive) {
+                                    const baseIntensity = 0.08 + intensity * 0.25;
+                                    const topIntensity = baseIntensity * 0.8;
+                                    backgroundColor = `linear-gradient(135deg, rgba(16, 185, 129, ${topIntensity}) 0%, rgba(5, 150, 105, ${baseIntensity}) 100%)`;
+                                } else {
+                                    const baseIntensity = 0.08 + intensity * 0.25;
+                                    const topIntensity = baseIntensity * 0.8;
+                                    backgroundColor = `linear-gradient(135deg, rgba(248, 113, 113, ${topIntensity}) 0%, rgba(220, 38, 38, ${baseIntensity}) 100%)`;
+                                }
 
-                        // Map sector names to icons
-                        const sectorIcons = {
-                            'IT': <LaptopIcon width={24} height={24} />,
-                            'Banking': <HomeIcon width={24} height={24} />,
-                            'Auto': <RocketIcon width={24} height={24} />,
-                            'Pharma': <HeartIcon width={24} height={24} />,
-                            'Energy': <LightningBoltIcon width={24} height={24} />,
-                            'FMCG': <BackpackIcon width={24} height={24} />,
-                            'Metals': <CubeIcon width={24} height={24} />,
-                            'Realty': <LayersIcon width={24} height={24} />
-                        };
+                                // Map sector names to icons
+                                const sectorIcons = {
+                                    'IT': <LaptopIcon width={24} height={24} />,
+                                    'Banking': <HomeIcon width={24} height={24} />,
+                                    'Auto': <RocketIcon width={24} height={24} />,
+                                    'Pharma': <HeartIcon width={24} height={24} />,
+                                    'Energy': <LightningBoltIcon width={24} height={24} />,
+                                    'FMCG': <BackpackIcon width={24} height={24} />,
+                                    'Metals': <CubeIcon width={24} height={24} />,
+                                    'Realty': <LayersIcon width={24} height={24} />
+                                };
 
-                        const icon = sectorIcons[sector.name] || <PieChartIcon width={24} height={24} />;
+                                const icon = sectorIcons[sector.name] || <PieChartIcon width={24} height={24} />;
 
-                        return (
-                            <motion.div
-                                key={sector.name}
-                                className="sector-cell"
-                                style={{ background: backgroundColor }}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.35 + i * 0.04 }}
-                                whileHover={{ scale: 1.02, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12)' }}
-                            >
-                                <div className="sector-cell-content">
-                                    <span className="sector-icon-wrapper" style={{
-                                        color: isPositive ? '#047857' : isNeutral ? '#4B5563' : '#DC2626',
-                                        background: isPositive ? 'rgba(4, 120, 87, 0.1)' : isNeutral ? 'rgba(75, 85, 99, 0.1)' : 'rgba(220, 38, 38, 0.1)',
-                                        padding: '8px',
-                                        borderRadius: '8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        marginRight: '12px'
-                                    }}>
-                                        {icon}
-                                    </span>
-                                    <div className="sector-info">
-                                        <span className="sector-name">{sector.name}</span>
-                                        <span className={`sector-performance ${isNeutral ? 'neutral' : isPositive ? 'positive' : 'negative'}`}>
-                                            {sector.performance > 0 ? '+' : ''}{sector.performance}%
-                                        </span>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            </section>
+                                return (
+                                    <motion.div
+                                        key={sector.name}
+                                        className="sector-cell"
+                                        style={{ background: backgroundColor }}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        whileInView={{ opacity: 1, scale: 1 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.05 }}
+                                        whileHover={{ scale: 1.05, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12)', zIndex: 10 }}
+                                    >
+                                        <div className="sector-cell-content">
+                                            <span className="sector-icon-wrapper" style={{
+                                                color: isPositive ? '#047857' : isNeutral ? '#4B5563' : '#DC2626',
+                                                background: isPositive ? 'rgba(4, 120, 87, 0.1)' : isNeutral ? 'rgba(75, 85, 99, 0.1)' : 'rgba(220, 38, 38, 0.1)',
+                                                padding: '8px',
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                marginRight: '12px'
+                                            }}>
+                                                {icon}
+                                            </span>
+                                            <div className="sector-info">
+                                                <span className="sector-name">{sector.name}</span>
+                                                <span className={`sector-performance ${isNeutral ? 'neutral' : isPositive ? 'positive' : 'negative'}`}>
+                                                    {sector.performance > 0 ? '+' : ''}{sector.performance}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })
+                        )}
+                    </div>
+                </motion.section>
+            </motion.div>
         </div>
     );
 };
