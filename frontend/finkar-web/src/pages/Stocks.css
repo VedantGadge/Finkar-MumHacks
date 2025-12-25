@@ -192,7 +192,6 @@
   opacity: 0.7;
 }
 
-
 /* Featured Section Container */
 .featured-section {
   margin: 0 0 24px 0;
@@ -335,9 +334,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
   pointer-events: none;
 }
 
@@ -531,10 +532,7 @@
 }
 
 .skeleton {
-  background: linear-gradient(90deg,
-      #f3f4f6 0%,
-      #e5e7eb 50%,
-      #f3f4f6 100%);
+  background: linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 50%, #f3f4f6 100%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 6px;
@@ -597,7 +595,6 @@
   height: 14px;
 }
 
-
 /* Back Button */
 .back-button {
   display: flex;
@@ -651,11 +648,13 @@
 
 .section-divider {
   height: 1px;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      #e5e7eb 20%,
-      #e5e7eb 80%,
-      transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #e5e7eb 20%,
+    #e5e7eb 80%,
+    transparent 100%
+  );
   margin: 24px 0;
 }
 
@@ -1219,3 +1218,142 @@
     font-size: 15px;
   }
 }
+
+/* Mode Toggle Switch */
+.mode-toggle-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+  position: sticky;
+  top: 20px;
+  z-index: 50;
+  pointer-events: none; /* Let clicks pass through container */
+}
+
+.detail-view-toggle {
+  margin-bottom: 10px;
+}
+
+.mode-toggle-pill {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid #e5e7eb;
+  padding: 4px;
+  border-radius: 100px;
+  display: flex;
+  gap: 4px;
+  pointer-events: auto; /* Re-enable clicks on the pill */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.mode-btn {
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mode-btn:hover {
+  color: #374151;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.mode-btn.active {
+  background: white;
+  color: #1f2937;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: scale(1.02);
+}
+
+/* Different active colors for different modes */
+.mode-btn.active:first-child {
+  /* Real Market */
+  color: #047857; /* Green */
+}
+
+.mode-btn.active:last-child {
+  /* Finkirk Game */
+  color: #7c3aed; /* Purple */
+}
+
+/* 3D Flip Animation */
+.flip-perspective {
+    perspective: 2000px; /* Deep perspective for a premium feel */
+    position: relative;
+    min-height: 80vh; /* Ensure space for absolute children */
+}
+
+.flip-inner {
+    position: relative;
+    width: 100%;
+    /* No minimal height on inner, let content dictate? 
+       Actually for absolute positioning faces, we need height control.
+       We will handle height via JS or min-height. */
+    transform-style: preserve-3d;
+    height: auto;
+}
+
+.flip-face {
+    width: 100%;
+    /* backface-visibility is crucial */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    top: 0;
+    left: 0;
+    background: transparent;
+}
+
+/* 
+   IMPORTANT: For a dynamic height content, standard absolute positioning for faces 
+   breaks the document flow (parent collapses to 0 height).
+   
+   Trick: Make the FRONT face relative (so it sets height) and BACK absolute?
+   No, if we flip, the back face needs to be visible.
+   
+   Solution: We will use a wrapper Grid where both occupy same cell.
+*/
+.flip-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    perspective: 2000px;
+}
+
+.flip-grid-inner {
+    grid-area: 1 / 1;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.flip-front {
+    grid-area: 1 / 1;
+    backface-visibility: hidden;
+    transform: rotateY(0deg);
+    z-index: 2;
+    pointer-events: auto; /* Ensure clicks work */
+}
+
+.flip-back {
+    grid-area: 1 / 1;
+    backface-visibility: hidden;
+    transform: rotateY(180deg);
+    z-index: 1;
+    pointer-events: auto;
+}
+
+/* When flipped, pointer events management is handled by visibility or z-index usually, 
+   but rotateY(180) moves it to front visually. 
+   React state will control the rotation class. */
+   
+.flip-state-game {
+    transform: rotateY(180deg);
+}
+

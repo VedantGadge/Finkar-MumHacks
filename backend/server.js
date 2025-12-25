@@ -13,6 +13,11 @@ const caseStudyRoutes = require("./routes/caseStudy");
 const marketRoutes = require("./routes/market");
 const indicesRoutes = require("./routes/indices");
 const userRoutes = require("./routes/user");
+const portfolioRoutes = require("./routes/portfolio");
+const { initCronJobs } = require("./utils/cronJobs");
+
+// Initialize Cron Jobs
+initCronJobs();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,6 +47,7 @@ app.use("/api", caseStudyRoutes);
 app.use("/api", marketRoutes);
 app.use("/api", indicesRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/portfolio", portfolioRoutes);
 
 // Start server
 app.listen(PORT, () => {

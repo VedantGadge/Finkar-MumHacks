@@ -3,7 +3,8 @@
  */
 
 // Use environment variable for API URL (defaults to localhost for development)
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
 
 /**
  * Fetches the list of available stock tickers
@@ -41,18 +42,21 @@ export const fetchTickers = async () => {
 export const generateCaseStudy = async (
   ticker,
   companyName = "",
-  useFinbert = false,
-  useGroq = false
+  useFinbert = true,
+  useGroq = true
 ) => {
   try {
     const requestBody = {
       ticker,
-      company_name: "string",
-      use_finbert: true,
-      use_groq: true,
+      company_name: companyName,
+      use_finbert: useFinbert,
+      use_groq: useGroq,
     };
 
-    console.log("Frontend sending to Backend:", JSON.stringify(requestBody, null, 2));
+    console.log(
+      "Frontend sending to Backend:",
+      JSON.stringify(requestBody, null, 2)
+    );
 
     const response = await fetch(`${API_BASE_URL}/case-study`, {
       method: "POST",
@@ -64,7 +68,9 @@ export const generateCaseStudy = async (
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to generate case study: ${response.status} ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `Failed to generate case study: ${response.status} ${response.statusText} - ${errorText}`
+      );
     }
 
     const data = await response.json();

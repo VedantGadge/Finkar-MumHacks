@@ -88,3 +88,27 @@ export const getLeaderboard = async () => {
     throw error;
   }
 };
+
+export const getPortfolioSummary = async (username) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/portfolio/${username}`);
+    if (!response.ok) throw new Error("Failed to fetch portfolio summary");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching portfolio summary:", error);
+    throw error;
+  }
+};
+
+export const getPortfolioHistory = async (username, period = "1M") => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/portfolio/${username}/history?period=${period}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch portfolio history");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching portfolio history:", error);
+    throw error;
+  }
+};

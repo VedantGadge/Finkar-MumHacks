@@ -16,12 +16,15 @@ const generateCaseStudy = async (req, res) => {
 
     const requestBody = {
       ticker,
-      company_name: "string",
-      use_finbert: true,
-      use_groq: true,
+      company_name: company_name || ticker,
+      use_finbert: use_finbert !== undefined ? use_finbert : true,
+      use_groq: use_groq !== undefined ? use_groq : true,
     };
 
-    console.log("Sending to External API:", JSON.stringify(requestBody, null, 2));
+    console.log(
+      "Sending to External API:",
+      JSON.stringify(requestBody, null, 2)
+    );
 
     const response = await fetch(`${API_BASE_URL}/case-study/generate`, {
       method: "POST",
@@ -84,7 +87,10 @@ const generateBatchCaseStudy = async (req, res) => {
       use_groq: true,
     };
 
-    console.log("Sending to External API:", JSON.stringify(requestBody, null, 2));
+    console.log(
+      "Sending to External API:",
+      JSON.stringify(requestBody, null, 2)
+    );
 
     const response = await fetch(`${API_BASE_URL}/case-study/batch`, {
       method: "POST",

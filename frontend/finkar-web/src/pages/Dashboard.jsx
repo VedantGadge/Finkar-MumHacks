@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { HomeIcon, PieChartIcon, ChatBubbleIcon, ReaderIcon, BarChartIcon } from '@radix-ui/react-icons';
 import { App } from '@capacitor/app';
 import useBackButton from '../hooks/useBackButton';
@@ -17,7 +17,6 @@ import { fetchLiabilities } from '../services/liabilitiesService';
 import FinancialHealthCard from '../components/dashboard/FinancialHealthCard';
 import QuickActions from '../components/dashboard/QuickActions';
 import UpcomingObligations from '../components/dashboard/UpcomingObligations';
-import RecentActivity from '../components/dashboard/RecentActivity';
 import GoalsOverview from '../components/dashboard/GoalsOverview';
 import BudgetOverview from '../components/dashboard/BudgetOverview';
 import Toast, { useToast, InputDialog } from '../components/common/Toast';
@@ -41,7 +40,6 @@ function Dashboard({ onLogout }) {
     const [loans, setLoans] = useState([]);
     const [creditCards, setCreditCards] = useState([]);
     const [apiBalance, setApiBalance] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     // Toast and Dialog states
     const { toast, showToast, hideToast } = useToast();
@@ -59,7 +57,6 @@ function Dashboard({ onLogout }) {
     useEffect(() => {
         const loadDashboardData = async () => {
             try {
-                setIsLoading(true);
                 const userId = localStorage.getItem('finkar_user_id') || 1; // Get user ID from localStorage
 
                 // Fetch all data in parallel
@@ -130,8 +127,6 @@ function Dashboard({ onLogout }) {
                 }
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
-            } finally {
-                setIsLoading(false);
             }
         };
 

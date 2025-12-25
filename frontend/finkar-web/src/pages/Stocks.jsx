@@ -10,6 +10,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { loginUser, buyStock, sellStock, getLeaderboard } from '../services/userService';
 import './Stocks.css';
 import './GamifiedStocks.css';
+import Portfolio from './Portfolio';
 
 const Stocks = () => {
     const { t } = useLanguage();
@@ -43,6 +44,7 @@ const Stocks = () => {
     const [tradeType, setTradeType] = useState('BUY');
     const [tradeQty, setTradeQty] = useState(1);
     const [tradeSuccess, setTradeSuccess] = useState(null);
+    const [viewMode, setViewMode] = useState('real'); // 'real' or 'game'
 
     // Auto-scroll logic
     useEffect(() => {
@@ -252,7 +254,7 @@ const Stocks = () => {
         try {
             setIsLoadingCaseStudy(true);
             setError(null);
-            const caseStudyData = await generateCaseStudy(ticker);
+            const caseStudyData = await generateCaseStudy(ticker, getTickerDisplayName(ticker));
             const mappedData = mapApiToStockData(caseStudyData);
 
             setLoadedCaseStudies(prev => ({ ...prev, [ticker]: mappedData }));
@@ -327,6 +329,23 @@ const Stocks = () => {
     if (selectedStock) {
         return (
             <div className="stocks-page">
+                {/* Mode Toggle Overlay in Detail View */}
+                <div className="mode-toggle-container detail-view-toggle">
+                    <div className="mode-toggle-pill">
+                        <button
+                            className={`mode-btn ${viewMode === 'real' ? 'active' : ''}`}
+                            onClick={() => setViewMode('real')}
+                        >
+                            📊 Real Market
+                        </button>
+                        <button
+                            className={`mode-btn ${viewMode === 'game' ? 'active' : ''}`}
+                            onClick={() => setViewMode('game')}
+                        >
+                            🎮 Finkirk Game
+                        </button>
+                    </div>
+                </div>
                 <motion.button
                     className="back-button"
                     onClick={handleBack}
@@ -350,14 +369,20 @@ const Stocks = () => {
                         </div>
 
                         {/* Gamified Actions */}
-                        {user && (
+                        {viewMode === 'game' && (
                             <div className="buy-sell-actions">
-                                <button className="action-btn btn-buy" onClick={() => { setTradeType('BUY'); setShowTradeModal(true); }}>
-                                    Buy {selectedStock.ticker}
-                                </button>
-                                <button className="action-btn btn-sell" onClick={() => { setTradeType('SELL'); setShowTradeModal(true); }}>
-                                    Sell {selectedStock.ticker}
-                                </button>
+                                {user ? (
+                                    <>
+                                        <button className="action-btn btn-buy" onClick={() => { setTradeType('BUY'); setShowTradeModal(true); }}>
+                                            Buy {selectedStock?.ticker?.replace('.NS', '') || selectedStock?.name || 'Stock'}
+                                        </button>
+                                        <button className="action-btn btn-sell" onClick={() => { setTradeType('SELL'); setShowTradeModal(true); }}>
+                                            Sell {selectedStock?.ticker?.replace('.NS', '') || selectedStock?.name || 'Stock'}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <p className="login-prompt">Loading your Finkirk account...</p>
+                                )}
                             </div>
                         )}
 
@@ -549,7 +574,7 @@ const Stocks = () => {
                 </motion.div>
 
                 {/* Trade Modal */}
-                {showTradeModal && (
+                {viewMode === 'game' && showTradeModal && (
                     <div className="trade-modal-overlay">
                         <div className="trade-modal">
                             <div className="trade-header">
@@ -600,6 +625,24 @@ const Stocks = () => {
 
     return (
         <div className="stocks-page">
+            {/* Mode Toggle Overlay - Fixed Top */}
+            <div className="mode-toggle-container">
+                <div className="mode-toggle-pill">
+                    <button
+                        className={`mode-btn ${viewMode === 'real' ? 'active' : ''}`}
+                        onClick={() => setViewMode('real')}
+                    >
+                        📊 Real Market
+                    </button>
+                    <button
+                        className={`mode-btn ${viewMode === 'game' ? 'active' : ''}`}
+                        onClick={() => setViewMode('game')}
+                    >
+                        🎮 Finkirk Game
+                    </button>
+                </div>
+            </div>
+
             {!isInitialLoadComplete && (
                 <motion.div
                     className="loading-overlay"
@@ -611,31 +654,16 @@ const Stocks = () => {
                 </motion.div>
             )}
 
-            {/* Gamified Header */}
-            {user && (
-                <div className="stocks-header-gamified">
-                    <div className="balance-info">
-                        <h3>Total Balance</h3>
-                        <div className="balance-amount">
-                            <span>{user.finkirkBalance.toFixed(0)}</span>
-                            <span className="currency-label">Finkirks</span>
-                        </div>
-                    </div>
-                    <div>
-                        {/* Placeholder for future stats */}
-                    </div>
-                </div>
-            )}
-
-            <div className="gamified-tabs">
-                <button className={`gamified-tab ${gamifiedTab === 'market' ? 'active' : ''}`} onClick={() => setGamifiedTab('market')}>Market</button>
-                <button className={`gamified-tab ${gamifiedTab === 'portfolio' ? 'active' : ''}`} onClick={() => setGamifiedTab('portfolio')}>Portfolio</button>
-                <button className={`gamified-tab ${gamifiedTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setGamifiedTab('leaderboard')}>Leaderboard</button>
-            </div>
-
+            {/* Crossfade between Real and Game modes */}
             <AnimatePresence mode="wait">
-                {gamifiedTab === 'market' && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                {viewMode === 'real' && (
+                    <motion.div
+                        key="real-market"
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                    >
                         <motion.h2
                             initial={{ y: 16, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
@@ -652,152 +680,24 @@ const Stocks = () => {
                             {t('stocks.subtitle')}
                         </motion.p>
 
-                        <motion.div
-                            className="search-container"
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.1 }}
-                        >
-                            <MagnifyingGlassIcon className="search-icon" />
-                            <input
-                                type="text"
-                                placeholder={isLoadingTickers ? t('common.loading') : t('stocks.searchStocks')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="search-input"
-                                disabled={isLoadingTickers}
-                            />
-
-                            {searchQuery && filteredTickers.length > 0 && (
-                                <motion.div
-                                    className="search-dropdown"
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                >
-                                    {filteredTickers.map((ticker) => (
-                                        <div
-                                            key={ticker}
-                                            className="search-result-item"
-                                            onClick={() => handleStockSelect(ticker)}
-                                        >
-                                            <span className="ticker-symbol">{getTickerDisplayName(ticker)}</span>
-                                            <span className="ticker-full">{ticker}</span>
-                                        </div>
-                                    ))}
-                                </motion.div>
-                            )}
-
-                            {searchQuery && filteredTickers.length === 0 && !isLoadingTickers && (
-                                <motion.div
-                                    className="search-dropdown"
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                >
-                                    <div className="search-no-results">
-                                        {t('stocks.noStocksFound')}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </motion.div>
-
-                        {isLoadingCaseStudy && (
-                            <motion.div
-                                className="loading-overlay"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                            >
-                                <div className="loading-spinner"></div>
-                                <p>{t('stocks.generatingCaseStudy')}</p>
-                            </motion.div>
-                        )}
-
-                        {error && (
-                            <motion.div
-                                className="error-message"
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                            >
-                                <span className="error-icon">⚠️</span>
-                                {error}
-                                <button onClick={() => setError(null)} className="error-close">×</button>
-                            </motion.div>
-                        )}
-
-                        <section className="featured-section">
-                            <h3>{t('stocks.featuredCompanies')}</h3>
-                            <div className="stocks-carousel" ref={carouselRef}>
-                                {[...featuredTickers, ...featuredTickers, ...featuredTickers, ...featuredTickers].map((symbol, index) => {
-                                    const stockData = quickStockData[symbol];
-                                    const isLoading = loadingStates[symbol];
-
-                                    if (isLoading || !stockData) return (
-                                        <motion.div
-                                            key={`${symbol}-${index}`}
-                                            className="stock-card-carousel loading"
-                                            initial={{ y: 20, opacity: 0 }}
-                                            animate={{ y: 0, opacity: 1 }}
-                                            transition={{ delay: 0.15 + (index % 4) * 0.05 }}
-                                        >
-                                            <div className="skeleton-header">
-                                                <div>
-                                                    <div className="skeleton skeleton-title"></div>
-                                                    <div className="skeleton skeleton-subtitle"></div>
-                                                </div>
-                                                <div className="skeleton skeleton-badge"></div>
-                                            </div>
-                                            <div className="skeleton skeleton-price"></div>
-                                            <div className="skeleton-footer">
-                                                <div className="skeleton skeleton-text"></div>
-                                                <div className="skeleton skeleton-signal"></div>
-                                            </div>
-                                        </motion.div>
-                                    );
-
-                                    const isPositive = stockData.price_change_pct >= 0;
-
-                                    return (
-                                        <motion.div
-                                            key={`${symbol}-${index}`}
-                                            className="stock-card-carousel"
-                                            initial={{ y: 20, opacity: 0 }}
-                                            animate={{ y: 0, opacity: 1 }}
-                                            transition={{ delay: 0.15 + (index % 4) * 0.05 }}
-                                            onClick={() => handleStockSelect(symbol)}
-                                        >
-                                            <div className="stock-header">
-                                                <div>
-                                                    <h4>{symbol.replace('.NS', '')}</h4>
-                                                    <p className="company-name">{getTickerDisplayName(symbol)}</p>
-                                                </div>
-                                                <span
-                                                    className={`change-badge ${isPositive ? 'positive' : 'negative'}`}
-                                                >
-                                                    {isPositive ? '+' : ''}{stockData.price_change_pct}%
-                                                </span>
-                                            </div>
-                                            <div className="stock-price">
-                                                ₹{stockData.end_price.toFixed(1)}
-                                            </div>
-                                            <div className="stock-footer">
-                                                <span className="stock-sector">{t('stocks.volatility')}: {stockData.volatility}%</span>
-                                                <span
-                                                    className="stock-signal"
-                                                    style={{ color: isPositive ? '#047857' : '#DC2626' }}
-                                                >
-                                                    {isPositive ? t('stocks.gaining') : t('stocks.declining')}
-                                                </span>
-                                            </div>
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
-                        </section>
-
-                        {nifty50Data && nifty50Data.data && <IndexChart data={nifty50Data} title="Nifty 50" gradientId="niftyGradient" color="#047857" />}
-                        {sensexData && sensexData.data && <IndexChart data={sensexData} title="Sensex" gradientId="sensexGradient" color="#2563eb" />}
-                        {bankNiftyData && bankNiftyData.data && <IndexChart data={bankNiftyData} title="Bank Nifty" gradientId="bankNiftyGradient" color="#7c3aed" />}
-
+                        <MarketView
+                            isLoadingTickers={isLoadingTickers}
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                            filteredTickers={filteredTickers}
+                            handleStockSelect={handleStockSelect}
+                            isLoadingCaseStudy={isLoadingCaseStudy}
+                            error={error}
+                            setError={setError}
+                            carouselRef={carouselRef}
+                            featuredTickers={featuredTickers}
+                            quickStockData={quickStockData}
+                            loadingStates={loadingStates}
+                            nifty50Data={nifty50Data}
+                            sensexData={sensexData}
+                            bankNiftyData={bankNiftyData}
+                            t={t}
+                        />
 
                         <section className="sector-heatmap-section">
                             <h3>{t('stocks.sectorPerformance')}</h3>
@@ -820,7 +720,6 @@ const Stocks = () => {
                                         backgroundColor = `linear-gradient(135deg, rgba(248, 113, 113, ${topIntensity}) 0%, rgba(220, 38, 38, ${baseIntensity}) 100%)`;
                                     }
 
-                                    // Map sector names to icons
                                     const sectorIcons = {
                                         'IT': <LaptopIcon width={24} height={24} />,
                                         'Banking': <HomeIcon width={24} height={24} />,
@@ -872,58 +771,110 @@ const Stocks = () => {
                     </motion.div>
                 )}
 
-                {gamifiedTab === 'portfolio' && (
-                    <motion.div className="portfolio-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                        {!user || user.portfolio.length === 0 ? (
-                            <div className="empty-state">
-                                <p>You haven't invested in any stocks yet.</p>
-                                <button className="continue-learning-btn" onClick={() => setGamifiedTab('market')}>Start Trading</button>
-                            </div>
-                        ) : (
-                            <div className="portfolio-list">
-                                {user.portfolio.map((item, idx) => {
-                                    const currentPrice = quickStockData && quickStockData[item.ticker] ? quickStockData[item.ticker].end_price : item.averagePrice;
-                                    const currentValue = currentPrice * item.quantity;
-                                    const investValue = item.averagePrice * item.quantity;
-                                    const gainLoss = currentValue - investValue;
-                                    const gainLossPct = (gainLoss / investValue) * 100;
-
-                                    return (
-                                        <div key={idx} className="portfolio-item" onClick={() => handleStockSelect(item.ticker)}>
-                                            <div className="portfolio-stock-info">
-                                                <h4>{item.ticker.replace('.NS', '')}</h4>
-                                                <div className="portfolio-stock-qty">{item.quantity} Shares • Avg ₹{item.averagePrice.toFixed(1)}</div>
-                                            </div>
-                                            <div className="portfolio-values">
-                                                <span className="current-val">₹{currentValue.toFixed(1)}</span>
-                                                <span className={`gain-loss ${gainLoss >= 0 ? 'positive' : 'negative'}`}>
-                                                    {gainLoss >= 0 ? '+' : ''}{gainLoss.toFixed(1)} ({gainLossPct.toFixed(1)}%)
-                                                </span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </motion.div>
-                )}
-
-                {gamifiedTab === 'leaderboard' && (
-                    <motion.div className="leaderboard-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                        <div className="leaderboard-list">
-                            {leaderboard.map((u, idx) => (
-                                <div key={idx} className="leaderboard-item">
-                                    <div className={`rank top-${idx + 1}`}>{idx + 1}</div>
-                                    <div className="user-info">
-                                        <span className="user-name">{u.username === user?.username ? 'You' : u.username}</span>
-                                        <span className="user-score">{u.achievements?.length || 0} Achievements</span>
-                                    </div>
-                                    <div className="user-balance">
-                                        <strong>{u.finkirkBalance.toFixed(0)}</strong> <small>Finkirks</small>
+                {viewMode === 'game' && (
+                    <motion.div
+                        key="game-mode"
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                    >
+                        {/* Game Header with Balance */}
+                        {user && (
+                            <div className="stocks-header-gamified">
+                                <div className="balance-info">
+                                    <h3>Total Balance</h3>
+                                    <div className="balance-amount">
+                                        <span>{user.finkirkBalance.toFixed(0)}</span>
+                                        <span className="currency-label">Finkirks</span>
                                     </div>
                                 </div>
-                            ))}
+                            </div>
+                        )}
+
+                        {/* Game Tabs */}
+                        <div className="gamified-tabs">
+                            <button className={`gamified-tab ${gamifiedTab === 'market' ? 'active' : ''}`} onClick={() => setGamifiedTab('market')}>Market</button>
+                            <button className={`gamified-tab ${gamifiedTab === 'portfolio' ? 'active' : ''}`} onClick={() => setGamifiedTab('portfolio')}>Portfolio</button>
+                            <button className={`gamified-tab ${gamifiedTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setGamifiedTab('leaderboard')}>Leaderboard</button>
                         </div>
+
+                        {/* Game Tab Content */}
+                        <AnimatePresence mode="wait">
+                            {gamifiedTab === 'market' && (
+                                <motion.div
+                                    key="game-market"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.25 }}
+                                >
+                                    <h2>Finkirk Stock Exchange</h2>
+                                    <p className="page-subtitle">Invest your Finkirks wisely and climb the leaderboard!</p>
+                                    <MarketView
+                                        isLoadingTickers={isLoadingTickers}
+                                        searchQuery={searchQuery}
+                                        setSearchQuery={setSearchQuery}
+                                        filteredTickers={filteredTickers}
+                                        handleStockSelect={handleStockSelect}
+                                        isLoadingCaseStudy={isLoadingCaseStudy}
+                                        error={error}
+                                        setError={setError}
+                                        carouselRef={carouselRef}
+                                        featuredTickers={featuredTickers}
+                                        quickStockData={quickStockData}
+                                        loadingStates={loadingStates}
+                                        nifty50Data={nifty50Data}
+                                        sensexData={sensexData}
+                                        bankNiftyData={bankNiftyData}
+                                        t={t}
+                                    />
+                                </motion.div>
+                            )}
+
+                            {gamifiedTab === 'portfolio' && (
+                                <motion.div
+                                    key="game-portfolio"
+                                    className="portfolio-view"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.25 }}
+                                >
+                                    <Portfolio
+                                        isEmbedded={true}
+                                        embeddedUsername={user?.username}
+                                        onStockSelect={(ticker) => handleStockSelect(ticker)}
+                                    />
+                                </motion.div>
+                            )}
+
+                            {gamifiedTab === 'leaderboard' && (
+                                <motion.div
+                                    key="game-leaderboard"
+                                    className="leaderboard-view"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.25 }}
+                                >
+                                    <div className="leaderboard-list">
+                                        {leaderboard.map((u, idx) => (
+                                            <div key={idx} className="leaderboard-item">
+                                                <div className={`rank top-${idx + 1}`}>{idx + 1}</div>
+                                                <div className="user-info">
+                                                    <span className="user-name">{u.username === user?.username ? 'You' : u.username}</span>
+                                                    <span className="user-score">{u.achievements?.length || 0} Achievements</span>
+                                                </div>
+                                                <div className="user-balance">
+                                                    <strong>{u.finkirkBalance.toFixed(0)}</strong> <small>Finkirks</small>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -931,4 +882,175 @@ const Stocks = () => {
     );
 };
 
+
+const MarketView = ({
+    isLoadingTickers,
+    searchQuery,
+    setSearchQuery,
+    filteredTickers,
+    handleStockSelect,
+    isLoadingCaseStudy,
+    error,
+    setError,
+    carouselRef,
+    featuredTickers,
+    quickStockData,
+    loadingStates,
+    nifty50Data,
+    sensexData,
+    bankNiftyData,
+    t
+}) => {
+    return (
+        <>
+            <motion.div
+                className="search-container"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+            >
+                <MagnifyingGlassIcon className="search-icon" />
+                <input
+                    type="text"
+                    placeholder={isLoadingTickers ? t('common.loading') : t('stocks.searchStocks')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="search-input"
+                    disabled={isLoadingTickers}
+                />
+
+                {searchQuery && filteredTickers.length > 0 && (
+                    <motion.div
+                        className="search-dropdown"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                    >
+                        {filteredTickers.map((ticker) => (
+                            <div
+                                key={ticker}
+                                className="search-result-item"
+                                onClick={() => handleStockSelect(ticker)}
+                            >
+                                <span className="ticker-symbol">{getTickerDisplayName(ticker)}</span>
+                                <span className="ticker-full">{ticker}</span>
+                            </div>
+                        ))}
+                    </motion.div>
+                )}
+
+                {searchQuery && filteredTickers.length === 0 && !isLoadingTickers && (
+                    <motion.div
+                        className="search-dropdown"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <div className="search-no-results">
+                            {t('stocks.noStocksFound')}
+                        </div>
+                    </motion.div>
+                )}
+            </motion.div>
+
+            {isLoadingCaseStudy && (
+                <motion.div
+                    className="loading-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    <div className="loading-spinner"></div>
+                    <p>{t('stocks.generatingCaseStudy')}</p>
+                </motion.div>
+            )}
+
+            {error && (
+                <motion.div
+                    className="error-message"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                >
+                    <span className="error-icon">⚠️</span>
+                    {error}
+                    <button onClick={() => setError(null)} className="error-close">×</button>
+                </motion.div>
+            )}
+
+            <section className="featured-section">
+                <h3>{t('stocks.featuredCompanies')}</h3>
+                <div className="stocks-carousel" ref={carouselRef}>
+                    {[...featuredTickers, ...featuredTickers, ...featuredTickers, ...featuredTickers].map((symbol, index) => {
+                        const stockData = quickStockData[symbol];
+                        const isLoading = loadingStates[symbol];
+
+                        if (isLoading || !stockData) return (
+                            <motion.div
+                                key={`${symbol}-${index}`}
+                                className="stock-card-carousel loading"
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.15 + (index % 4) * 0.05 }}
+                            >
+                                <div className="skeleton-header">
+                                    <div>
+                                        <div className="skeleton skeleton-title"></div>
+                                        <div className="skeleton skeleton-subtitle"></div>
+                                    </div>
+                                    <div className="skeleton skeleton-badge"></div>
+                                </div>
+                                <div className="skeleton skeleton-price"></div>
+                                <div className="skeleton-footer">
+                                    <div className="skeleton skeleton-text"></div>
+                                    <div className="skeleton skeleton-signal"></div>
+                                </div>
+                            </motion.div>
+                        );
+
+                        const isPositive = stockData.price_change_pct >= 0;
+
+                        return (
+                            <motion.div
+                                key={`${symbol}-${index}`}
+                                className="stock-card-carousel"
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.15 + (index % 4) * 0.05 }}
+                                onClick={() => handleStockSelect(symbol)}
+                            >
+                                <div className="stock-header">
+                                    <div>
+                                        <h4>{symbol.replace('.NS', '')}</h4>
+                                        <p className="company-name">{getTickerDisplayName(symbol)}</p>
+                                    </div>
+                                    <span
+                                        className={`change-badge ${isPositive ? 'positive' : 'negative'}`}
+                                    >
+                                        {isPositive ? '+' : ''}{stockData.price_change_pct}%
+                                    </span>
+                                </div>
+                                <div className="stock-price">
+                                    ₹{stockData.end_price.toFixed(1)}
+                                </div>
+                                <div className="stock-footer">
+                                    <span className="stock-sector">{t('stocks.volatility')}: {stockData.volatility}%</span>
+                                    <span
+                                        className="stock-signal"
+                                        style={{ color: isPositive ? '#047857' : '#DC2626' }}
+                                    >
+                                        {isPositive ? t('stocks.gaining') : t('stocks.declining')}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            </section>
+
+            {nifty50Data && nifty50Data.data && <IndexChart data={nifty50Data} title="Nifty 50" gradientId="niftyGradient" color="#047857" />}
+            {sensexData && sensexData.data && <IndexChart data={sensexData} title="Sensex" gradientId="sensexGradient" color="#2563eb" />}
+            {bankNiftyData && bankNiftyData.data && <IndexChart data={bankNiftyData} title="Bank Nifty" gradientId="bankNiftyGradient" color="#7c3aed" />}
+        </>
+    );
+};
+
 export default Stocks;
+

@@ -53,6 +53,7 @@ exports.buyStock = async (req, res) => {
 
     // Deduct balance
     user.finkirkBalance -= totalCost;
+    user.totalSpent = (user.totalSpent || 0) + totalCost;
 
     // Update Portfolio
     const portfolioItem = user.portfolio.find((p) => p.ticker === ticker);
@@ -114,6 +115,7 @@ exports.sellStock = async (req, res) => {
     const costBasis = quantity * portfolioItem.averagePrice;
     const profit = totalRevenue - costBasis;
     user.totalEarnings += profit;
+    user.totalSpent = Math.max(0, (user.totalSpent || 0) - costBasis);
 
     // Update Portfolio
     portfolioItem.quantity -= quantity;

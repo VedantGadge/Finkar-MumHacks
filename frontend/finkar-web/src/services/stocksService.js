@@ -1,5 +1,6 @@
 // Stocks API Service
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
 
 /**
  * Fetch available stock tickers
@@ -51,17 +52,20 @@ export const fetchStockData = async (ticker) => {
 export const generateCaseStudy = async (
   ticker,
   companyName = null,
-  useFinbert = false,
-  useGroq = false
+  useFinbert = true,
+  useGroq = true
 ) => {
   try {
     const requestBody = {
       ticker,
-      company_name: "string",
-      use_finbert: true,
-      use_groq: true,
+      company_name: companyName || ticker,
+      use_finbert: useFinbert,
+      use_groq: useGroq,
     };
-    console.log("Frontend Service sending to Backend:", JSON.stringify(requestBody, null, 2));
+    console.log(
+      "Frontend Service sending to Backend:",
+      JSON.stringify(requestBody, null, 2)
+    );
 
     const response = await fetch(`${API_BASE_URL}/case-study`, {
       method: "POST",
@@ -73,7 +77,9 @@ export const generateCaseStudy = async (
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to generate case study for ${ticker}: ${response.status} ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `Failed to generate case study for ${ticker}: ${response.status} ${response.statusText} - ${errorText}`
+      );
     }
 
     return await response.json();
@@ -110,7 +116,9 @@ export const generateBatchCaseStudy = async (
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to generate batch case studies: ${response.status} ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `Failed to generate batch case studies: ${response.status} ${response.statusText} - ${errorText}`
+      );
     }
 
     return await response.json();

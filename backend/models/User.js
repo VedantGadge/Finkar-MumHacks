@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
     },
     finkirkBalance: {
       type: Number,
-      default: 500, // Starting balance
+      default: 5000, // Starting balance
       min: 0,
     },
     portfolio: [
@@ -43,6 +43,21 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    totalSpent: {
+      type: Number,
+      default: 0,
+    },
+    portfolioHistory: [
+      {
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+        balance: Number,
+        investedValue: Number,
+        totalValue: Number,
+      },
+    ],
   },
   {
     timestamps: true,

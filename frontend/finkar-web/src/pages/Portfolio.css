@@ -1,0 +1,331 @@
+/* Portfolio Page Container */
+.portfolio-page {
+    min-height: 100vh;
+    padding-bottom: 100px;
+    font-family: 'DM Sans', sans-serif;
+    background: #F8F9FA;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Header Section - Dark Theme */
+.portfolio-header-section {
+    background: #1A1A1A;
+    padding: 20px 20px 30px;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    color: white;
+    position: relative;
+    z-index: 10;
+}
+
+.portfolio-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.portfolio-nav h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.nav-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Balance Card */
+.balance-card {
+    background: #F2F2F2;
+    border-radius: 24px;
+    padding: 24px;
+    color: #1A1A1A;
+    margin-top: -10px; /* Slight overlap if needed, or just tight spacing */
+    position: relative;
+    /* Use white background for the card inside the dark header area or just below it */
+    background: #F4F4F5; 
+}
+
+/* The Balance Section is actually part of the white area in the design, 
+   but let's make it flow from the header. 
+   Actually, looking at the design, the whole top part is black, 
+   then a large white card starts overlaying it. */
+
+.portfolio-content-card {
+    background: #F4F4F5;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    margin-top: -25px;
+    padding: 30px 20px 100px;
+    position: relative;
+    z-index: 20;
+    min-height: calc(100vh - 100px);
+}
+
+.balance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.balance-label {
+    font-size: 14px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+.period-select {
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.main-balance {
+    font-size: 42px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 30px 0;
+    letter-spacing: -1px;
+}
+
+.main-balance small {
+    font-size: 24px;
+    color: #6B7280;
+    font-weight: 600;
+}
+
+/* Chart Area */
+.chart-area {
+    height: 220px;
+    width: 100%;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.chart-price-tag {
+    position: absolute;
+    right: 10px;
+    top: 30%;
+    background: #CDFF00; /* Lime green from design */
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #1A1A1A;
+    box-shadow: 0 2px 8px rgba(205, 255, 0, 0.4);
+    z-index: 10;
+}
+
+/* Date Labels */
+.chart-dates {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    margin-bottom: 30px;
+}
+
+.chart-date {
+    font-size: 12px;
+    color: #9CA3AF;
+    font-weight: 500;
+}
+
+/* Stats Row (Spent / Earned) */
+.stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #EAEAEA; /* Light gray for card bg */
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
+
+.stat-icon-wrapper.spent {
+    color: #10B981;
+    border: 1px solid #10B981;
+}
+
+.stat-icon-wrapper.earned {
+    color: #CDFF00;
+    background: #F4F4F5;
+    border: 1px solid #CDFF00;
+}
+
+.stat-label-text {
+    font-size: 13px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+.stat-amount {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+}
+
+/* Top Stock Section */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0;
+}
+
+.view-all {
+    font-size: 14px;
+    color: #6B7280;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.stock-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.portfolio-stock-item {
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    transition: transform 0.2s;
+}
+
+.portfolio-stock-item:hover {
+    transform: translateY(-2px);
+}
+
+.stock-info-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stock-logo {
+    width: 40px;
+    height: 40px;
+    background: #F3F4F6;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #374151;
+    font-size: 14px;
+}
+
+.stock-names h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #1F2937;
+    font-weight: 600;
+}
+
+.stock-names span {
+    font-size: 12px;
+    color: #6B7280;
+}
+
+.stock-info-right {
+    text-align: right;
+}
+
+.stock-value {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1F2937;
+}
+
+.stock-change {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.positive { color: #10B981; }
+.negative { color: #EF4444; }
+
+/* Custom Candlestick Simulation */
+.candle {
+    width: 6px;
+    border-radius: 3px;
+    position: relative;
+    margin: 0 auto;
+}
+
+.wick {
+    width: 2px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: inherit;
+    z-index: 1;
+}
+
+.body {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    z-index: 2;
+    border-radius: 2px;
+}
+
+.candle.green { background: #10B981; }
+.candle.red { background: #EF4444; }

@@ -11,6 +11,7 @@ export const mapApiToStockData = (apiData) => {
   const lessons = extractLessonsFromMarkdown(apiData.markdown_output);
 
   return {
+    ticker: apiData.ticker,
     symbol: apiData.ticker,
     name: apiData.company_name,
     sector: apiData.sector,
@@ -66,29 +67,31 @@ const extractLessonsFromMarkdown = (markdown) => {
   // Find the end of the section (next ### or ---)
   const sectionContent = markdown.slice(sectionStart);
   const sectionEnd = sectionContent.indexOf("\n---", 10);
-  const relevantContent = sectionEnd !== -1 
-    ? sectionContent.slice(0, sectionEnd) 
-    : sectionContent;
+  const relevantContent =
+    sectionEnd !== -1 ? sectionContent.slice(0, sectionEnd) : sectionContent;
 
   // Regex to match lessons in format:
   // #### Lesson N: Title
   // Content...
   // **Financial Literacy Tip:** Tip content
-  const lessonRegex = /#### Lesson \d+: (.*?)\n([\s\S]*?)(?=#### Lesson \d+:|$)/g;
+  const lessonRegex =
+    /#### Lesson \d+: (.*?)\n([\s\S]*?)(?=#### Lesson \d+:|$)/g;
 
   let match;
   while ((match = lessonRegex.exec(relevantContent)) !== null) {
     const title = match[1].trim();
     const content = match[2].trim();
-    
+
     // Extract the description (everything before the Financial Literacy Tip)
     const tipStart = content.indexOf("**Financial Literacy Tip:**");
     let description = "";
     let tip = "";
-    
+
     if (tipStart !== -1) {
       description = content.slice(0, tipStart).trim();
-      tip = content.slice(tipStart + "**Financial Literacy Tip:**".length).trim();
+      tip = content
+        .slice(tipStart + "**Financial Literacy Tip:**".length)
+        .trim();
     } else {
       description = content;
     }
@@ -102,4 +105,3 @@ const extractLessonsFromMarkdown = (markdown) => {
 
   return lessons;
 };
-
