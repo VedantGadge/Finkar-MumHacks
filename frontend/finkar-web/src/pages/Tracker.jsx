@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createBudget, updateBudget, deleteBudget, getCurrentUserId } from '../services/budgetService';
+import { createBudget, updateBudget, deleteBudget, getCurrentUserId, fetchBudgets } from '../services/budgetService';
 import { fetchLiabilities } from '../services/liabilitiesService';
 import { fetchGoals, createGoal, deleteGoal } from '../services/goalsService';
 import { createManualTransaction, fetchTransactions, fetchBalance } from '../services/transactionsService';
@@ -227,6 +227,37 @@ function Tracker() {
         loadBalance();
     }, []);
 
+    // Fetch budgets data on component mount
+    useEffect(() => {
+        const loadBudgets = async () => {
+            try {
+                const userId = getCurrentUserId();
+                const data = await fetchBudgets(userId);
+
+                // API returns: { month, total_budget, total_spent, overall_status, categories: [...] }
+                // Each category has: { category, color, limit, spent, remaining, percent_used, status }
+                // We need to map this to our expected format with planned/actual
+                const categoriesArray = data.categories || [];
+                const mappedBudgets = categoriesArray.map(b => ({
+                    id: b.category, // Use category name as ID since API doesn't provide one
+                    category: b.category,
+                    planned: b.limit, // API uses 'limit' for budget
+                    actual: b.spent, // API uses 'spent' for actual
+                    month: data.month,
+                    utilization_percent: b.percent_used,
+                    status: b.status
+                }));
+
+                if (mappedBudgets.length > 0) {
+                    setBudgets(mappedBudgets);
+                }
+            } catch (error) {
+                console.error('Failed to load budgets:', error);
+            }
+        };
+        loadBudgets();
+    }, []);
+
     const cards = [
         { id: 'transactions', title: t('tracker.transactions'), subtitle: 'Daily Tracker', color: '#3B82F6', type: 'transactions' },
         { id: 'budget', title: t('tracker.budget'), subtitle: 'Monthly Planner', color: '#10B981', type: 'budget' },
@@ -248,19 +279,19 @@ function Tracker() {
     }, [transactions]);
 
     const totalPlanned = useMemo(() => {
-        return budgets.reduce((s, b) => s + (b.planned || 0), 0);
+        return Array.isArray(budgets) ? budgets.reduce((s, b) => s + (b.planned || b.amount || 0), 0) : 0;
     }, [budgets]);
 
     const totalEmi = useMemo(() => {
-        return loans.reduce((s, l) => s + (l.emi || 0), 0);
+        return Array.isArray(loans) ? loans.reduce((s, l) => s + (l.emi || 0), 0) : 0;
     }, [loans]);
 
     const totalOutstanding = useMemo(() => {
-        return creditCards.reduce((s, c) => s + (c.outstanding || 0), 0);
+        return Array.isArray(creditCards) ? creditCards.reduce((s, c) => s + (c.outstanding || 0), 0) : 0;
     }, [creditCards]);
 
     const goalsProgressPercent = useMemo(() => {
-        return goals.length ? Math.round((goals.reduce((s, g) => s + (g.percent || 0), 0) / goals.length)) : 0;
+        return (Array.isArray(goals) && goals.length) ? Math.round((goals.reduce((s, g) => s + (g.percent || 0), 0) / goals.length)) : 0;
     }, [goals]);
 
     const categoriesCount = useMemo(() => {
@@ -351,12 +382,16 @@ function Tracker() {
         };
     }, [scrollOffset]);
 
+    const totalSpent = useMemo(() => {
+        return Array.isArray(budgets) ? budgets.reduce((s, b) => s + (b.actual || 0), 0) : 0;
+    }, [budgets]);
+
     const getCardStat = (cardId) => {
         switch (cardId) {
             case 'transactions':
                 return <div className="card-stat">Balance ₹{totalBalance.toLocaleString()}</div>;
             case 'budget':
-                return <div className="card-stat">Planned ₹{totalPlanned.toLocaleString()}</div>;
+                return <div className="card-stat">₹{totalSpent.toLocaleString()} / ₹{totalPlanned.toLocaleString()}</div>;
             case 'loans':
                 return <div className="card-stat">EMI ₹{totalEmi.toLocaleString()}</div>;
             case 'credit':

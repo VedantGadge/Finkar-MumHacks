@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useLocalStorage from '../hooks/useLocalStorage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
 import Flashcard from '../components/Flashcard';
@@ -657,18 +658,23 @@ const Learning = () => {
     const [progress, setProgress] = useState(getProgress());
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState('all');
-    const [dailyCards, setDailyCards] = useState([]);
-    const [loadingCards, setLoadingCards] = useState(true);
+    const [dailyCards, setDailyCards] = useLocalStorage('learning_daily_cards', []);
+    const [loadingCards, setLoadingCards] = useState(() => !localStorage.getItem('learning_daily_cards'));
     const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
 
     useEffect(() => {
         const loadDailyLearning = async () => {
             try {
-                // TODO: Replace with actual user ID from auth context
-                const userId = 123;
-                const data = await fetchDailyLearning(userId);
-                if (data && data.cards) {
-                    setDailyCards(data.cards);
+                // Get user ID from local storage or default to 123
+                const storedUserId = localStorage.getItem('finkar_user_id');
+                const userId = storedUserId ? parseInt(storedUserId, 10) : 123;
+
+                // Only fetch if we have a valid ID (or just try the default)
+                if (userId) {
+                    const data = await fetchDailyLearning(userId);
+                    if (data && data.cards) {
+                        setDailyCards(data.cards);
+                    }
                 }
             } catch (error) {
                 console.error("Failed to load daily learning cards", error);

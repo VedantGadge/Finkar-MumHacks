@@ -4,7 +4,11 @@ import { fetchTransactions, fetchBalance, getCurrentUserId } from '../services/t
 import { fetchBudgets } from '../services/budgetService';
 import { fetchLiabilities } from '../services/liabilitiesService';
 import { fetchGoals } from '../services/goalsService';
+import { fetchSnapshots } from '../services/snapshotsService';
+import { fetchFinancialScore } from '../services/scoreService';
+import { fetchDailyLearning } from '../services/learningService';
 import './Splash.css';
+
 
 export default function Splash() {
   const { t } = useLanguage();
@@ -40,21 +44,16 @@ export default function Splash() {
 
           // 3. Budgets
           fetchBudgets(userId).then(data => {
-            // Check if budgets is array or object and format matching Tracker.jsx expectation
-            // Tracker expects array of: { id, category, planned, actual, month }
-            // API returns array of: { id, user_id, category, amount, month, created_at, utilization_percent, status }
-            // We might need to map it if the structure differs significantly or if Tracker uses a "local" structure
-            // effectively. The Tracker uses `tracker_budgets` key.
-            // Based on Tracker.jsx code, the default was:
-            // { id: 1, category: 'Food', planned: 10000, actual: 8200, month: 'Nov 2025' }
-
-            const budgets = (Array.isArray(data) ? data : (data.budgets || [])).map(b => ({
-              id: b.id,
+            // API returns: { month, total_budget, total_spent, categories: [...] }
+            // Each category has: { category, color, limit, spent, remaining, percent_used, status }
+            const categoriesArray = data.categories || [];
+            const budgets = categoriesArray.map(b => ({
+              id: b.category,
               category: b.category,
-              planned: b.amount, // API uses 'amount' for limit
-              actual: (b.amount * (b.utilization_percent || 0) / 100), // Approximate actual from percent if needed, or 0
-              month: b.month,
-              utilization_percent: b.utilization_percent,
+              planned: b.limit, // API uses 'limit' for budget
+              actual: b.spent, // API uses 'spent' for actual
+              month: data.month,
+              utilization_percent: b.percent_used,
               status: b.status
             }));
             localStorage.setItem('tracker_budgets', JSON.stringify(budgets));
@@ -104,7 +103,27 @@ export default function Splash() {
               };
             });
             localStorage.setItem('tracker_goals', JSON.stringify(mappedGoals));
-          }).catch(err => console.error("Prefetch goals failed", err))
+          }).catch(err => console.error("Prefetch goals failed", err)),
+
+          // 6. Snapshots
+          fetchSnapshots(userId).then(data => {
+            const snapshots = Array.isArray(data) ? data : [];
+            localStorage.setItem('dashboard_monthly_snapshots', JSON.stringify(snapshots));
+          }).catch(err => console.error("Prefetch snapshots failed", err)),
+
+          // 7. Financial Score
+          fetchFinancialScore(userId).then(data => {
+            if (data && data.score !== undefined) {
+              localStorage.setItem('dashboard_financial_score', JSON.stringify(data.score));
+            }
+          }).catch(err => console.error("Prefetch score failed", err)),
+
+          // 8. Daily Learning Cards
+          fetchDailyLearning(userId).then(data => {
+            if (data && data.cards) {
+              localStorage.setItem('learning_daily_cards', JSON.stringify(data.cards));
+            }
+          }).catch(err => console.error("Prefetch daily learning cards failed", err))
         ];
 
         // We don't await the promises here because we want the splash screen to proceed 

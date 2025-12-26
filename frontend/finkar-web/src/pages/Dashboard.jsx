@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import useLocalStorage from '../hooks/useLocalStorage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HomeIcon, PieChartIcon, ChatBubbleIcon, ReaderIcon, BarChartIcon } from '@radix-ui/react-icons';
 import { App } from '@capacitor/app';
@@ -38,15 +39,15 @@ function Dashboard({ onLogout }) {
     const [isSquished, setIsSquished] = useState(false);
 
     // State for API data
-    const [transactions, setTransactions] = useState([]);
-    const [goals, setGoals] = useState([]);
-    const [budgets, setBudgets] = useState(null);
-    const [loans, setLoans] = useState([]);
-    const [creditCards, setCreditCards] = useState([]);
-    const [apiBalance, setApiBalance] = useState(null);
-    const [snapshots, setSnapshots] = useState([]);
-    const [financialScore, setFinancialScore] = useState(45); // Default score
-    const [isLoading, setIsLoading] = useState(true);
+    const [transactions, setTransactions] = useLocalStorage('tracker_transactions', []);
+    const [goals, setGoals] = useLocalStorage('tracker_goals', []);
+    const [budgets, setBudgets] = useLocalStorage('tracker_budgets', null);
+    const [loans, setLoans] = useLocalStorage('tracker_loans', []);
+    const [creditCards, setCreditCards] = useLocalStorage('tracker_credit_cards', []);
+    const [apiBalance, setApiBalance] = useLocalStorage('tracker_balance', null);
+    const [snapshots, setSnapshots] = useLocalStorage('dashboard_monthly_snapshots', []);
+    const [financialScore, setFinancialScore] = useLocalStorage('dashboard_financial_score', 45); // Default score
+    const [isLoading, setIsLoading] = useState(() => !localStorage.getItem('tracker_transactions'));
 
     // Toast and Dialog states
     const { toast, showToast, hideToast } = useToast();
@@ -135,7 +136,20 @@ function Dashboard({ onLogout }) {
 
                 setTransactions(mappedTransactions);
                 setGoals(mappedGoals);
-                setBudgets(budgetsData);
+
+                // Map budgets to consistent format (matching actual API response)
+                // API returns: { month, total_budget, total_spent, categories: [...] }
+                const mappedBudgets = (budgetsData.categories || []).map(b => ({
+                    id: b.category,
+                    category: b.category,
+                    planned: b.limit, // API uses 'limit' for budget
+                    actual: b.spent, // API uses 'spent' for actual
+                    month: budgetsData.month,
+                    utilization_percent: b.percent_used,
+                    status: b.status
+                }));
+                setBudgets(mappedBudgets);
+
                 setLoans(mappedLoans);
                 setCreditCards(mappedCreditCards);
                 if (balanceData && balanceData.current_balance !== undefined) {
@@ -315,9 +329,6 @@ function Dashboard({ onLogout }) {
             {/* Financial Health Card */}
             <FinancialHealthCard balance={totalBalance} healthScore={financialScore} />
 
-            {/* Monthly Snapshots */}
-            <MonthlySnapshots snapshots={snapshots} isLoading={isLoading} />
-
             {/* Quick Actions */}
             <QuickActions
                 onAddTransaction={() => setActiveTab(1)}
@@ -325,6 +336,9 @@ function Dashboard({ onLogout }) {
                 onTrackGoal={() => setActiveTab(1)}
                 onAskAI={() => setActiveTab(2)}
             />
+
+            {/* Monthly Snapshots */}
+            <MonthlySnapshots snapshots={snapshots} isLoading={isLoading} />
 
             {/* Budget Overview */}
             <BudgetOverview

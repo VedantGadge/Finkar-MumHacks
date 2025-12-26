@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateOTP, verifyOTP, fetchFIPs, approveConsent, initiateSetuConsent, getConsentStatus } from '../services/authService';
+import { Browser } from '@capacitor/browser';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
+import { generateOTP, verifyOTP, fetchFIPs, approveConsent, initiateSetuConsent, getConsentStatus, lookupUser } from '../services/authService';
 import './Login.css';
 
 // Step components
@@ -608,6 +611,17 @@ export default function Login({ onLoginSuccess }) {
                     const statusData = await getConsentStatus(consentId);
                     if (statusData.status === 'ACTIVE') {
                         clearInterval(pollInterval);
+
+                        // User Lookup
+                        try {
+                            const userData = await lookupUser(phoneNumber);
+                            if (userData && userData.user_id) {
+                                localStorage.setItem('finkar_user_id', userData.user_id);
+                            }
+                        } catch (lookupErr) {
+                            console.error("User lookup failed during polling", lookupErr);
+                        }
+
                         // Save login info and redirect
                         localStorage.setItem('finkar_logged_in', 'true');
                         localStorage.setItem('finkar_phone', phoneNumber);
@@ -620,6 +634,46 @@ export default function Login({ onLoginSuccess }) {
         }
         return () => clearInterval(pollInterval);
     }, [consentId, flow, phoneNumber, onLoginSuccess]);
+
+    // Handle Deep Links for Native App
+    useEffect(() => {
+        if (Capacitor.isNativePlatform()) {
+            App.addListener('appUrlOpen', async (data) => {
+                if (data.url.includes('setu-callback')) {
+                    // Close the in-app browser
+                    await Browser.close();
+
+                    if (data.url.includes('status=success')) {
+                        try {
+                            // Lookup User ID
+                            const savedPhone = localStorage.getItem('finkar_phone'); // Should be saved when initiating
+                            if (savedPhone) {
+                                const userData = await lookupUser(savedPhone);
+                                if (userData && userData.user_id) {
+                                    localStorage.setItem('finkar_user_id', userData.user_id);
+                                }
+                            }
+
+                            localStorage.setItem('finkar_logged_in', 'true');
+                            if (onLoginSuccess) onLoginSuccess();
+                        } catch (err) {
+                            console.error("User lookup failed", err);
+                            // Fallback? Or fail? Let's proceed but maybe show specific error
+                            // For now, allow login even if lookup fails, but it might break subsequent calls
+                            setError('Login succeeded but user lookup failed.');
+                            // Still login? Maybe better to halt if user_id is critical
+                            // But for resilience, let's login. The next API calls might fail if they need user_id
+                            localStorage.setItem('finkar_logged_in', 'true');
+                            if (onLoginSuccess) onLoginSuccess();
+                        }
+                    } else {
+                        setError('Consent process was not successful or cancelled.');
+                        setIsLoading(false);
+                    }
+                }
+            });
+        }
+    }, [onLoginSuccess]);
 
     const handleFlowSelection = (selectedFlow) => {
         setFlow(selectedFlow);
@@ -640,16 +694,25 @@ export default function Login({ onLoginSuccess }) {
                 // Store phone number for retrieval
                 localStorage.setItem('finkar_phone', phoneNumber);
 
-                const redirectUrl = window.location.origin + '?details_flow=setu&status=success';
+                let redirectUrl = window.location.origin + '?details_flow=setu&status=success';
+                if (Capacitor.isNativePlatform()) {
+                    redirectUrl = 'finkar://setu-callback?details_flow=setu&status=success';
+                }
+
                 const response = await initiateSetuConsent(phoneNumber, redirectUrl);
 
                 if (response && response.url && response.consent_id) {
                     setConsentId(response.consent_id);
-                    // Open in new tab so we can poll in this tab
-                    window.open(response.url, '_blank');
+
+                    if (Capacitor.isNativePlatform()) {
+                        await Browser.open({ url: response.url });
+                    } else {
+                        // Open in new tab so we can poll in this tab
+                        window.open(response.url, '_blank');
+                    }
+
                     // Show a message or loading state in the current tab
-                    setIsLoading(true); // Keep loading state true while polling? Or show a specific "Waiting..." UI?
-                    // Let's keep isLoading true for now, or maybe add a specific "Waiting for confirmation" message
+                    setIsLoading(true);
                     setError('Please approve the consent in the newly opened window. Waiting for confirmation...');
                 } else {
                     throw new Error('Invalid response from Setu');

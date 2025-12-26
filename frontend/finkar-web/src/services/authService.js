@@ -128,3 +128,27 @@ export const getConsentStatus = async (consentId) => {
 
     return response.json();
 };
+
+/**
+ * Lookup user by phone number
+ * @param {string} phoneNumber - The mobile number
+ * @returns {Promise<object>} - API response containing user_id
+ */
+export const lookupUser = async (phoneNumber) => {
+    // Construct URL with query parameter
+    const url = new URL(`${API_BASE_URL}/api/user/lookup`);
+    url.searchParams.append('phone_number', phoneNumber);
+
+    const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to lookup user');
+    }
+
+    return response.json();
+};

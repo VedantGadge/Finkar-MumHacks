@@ -6,11 +6,33 @@ import './MonthlySnapshots.css';
 
 const MonthlySnapshots = ({ snapshots = [], isLoading = false }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [direction, setDirection] = useState(0);
     const [modalConfig, setModalConfig] = useState({
         isOpen: false,
         type: null, // 'trends' or 'recommendations'
         content: null
     });
+
+    // Variants for simple fade animation
+    const variants = {
+        enter: {
+            opacity: 0
+        },
+        center: {
+            zIndex: 1,
+            opacity: 1,
+            transition: {
+                duration: 0.2
+            }
+        },
+        exit: {
+            zIndex: 0,
+            opacity: 0,
+            transition: {
+                duration: 0.2
+            }
+        }
+    };
 
     // Lock body scroll when modal is open
     useEffect(() => {
@@ -76,10 +98,12 @@ const MonthlySnapshots = ({ snapshots = [], isLoading = false }) => {
     };
 
     const goToPrevious = () => {
+        setDirection(-1);
         setCurrentIndex((prev) => (prev > 0 ? prev - 1 : sortedSnapshots.length - 1));
     };
 
     const goToNext = () => {
+        setDirection(1);
         setCurrentIndex((prev) => (prev < sortedSnapshots.length - 1 ? prev + 1 : 0));
     };
 
@@ -174,116 +198,140 @@ const MonthlySnapshots = ({ snapshots = [], isLoading = false }) => {
                     <ChevronLeftIcon width={24} height={24} />
                 </button>
 
-                <div className="snapshot-card">
-                    {/* Header */}
-                    <div className="snapshot-header">
-                        <div className="month-selector">
-                            <span className="current-month">
-                                {getMonthName(currentSnapshot.month)} {currentSnapshot.year}
-                            </span>
-                        </div>
-                        <div className={`net-savings ${currentSnapshot.metrics.net_savings >= 0 ? 'positive' : 'negative'}`}>
-                            {currentSnapshot.metrics.net_savings >= 0 ? '+' : ''}{formatCurrency(currentSnapshot.metrics.net_savings)}
-                        </div>
-                    </div>
+                <div className="carousel-wrapper" style={{ flex: 1, overflow: 'hidden' }}>
+                    <AnimatePresence initial={false} custom={direction} mode="wait">
+                        <motion.div
+                            key={currentIndex}
+                            custom={direction}
+                            variants={variants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            className="snapshot-card"
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={1}
+                            onDragEnd={(e, { offset, velocity }) => {
+                                const swipe = offset.x;
 
-                    {/* Main Stats */}
-                    <div className="main-stats">
-                        <div className="stat-block">
-                            <span className="stat-label">Income</span>
-                            <span className="stat-value income">{formatCurrency(currentSnapshot.metrics.total_income)}</span>
-                        </div>
-                        <div className="stat-divider"></div>
-                        <div className="stat-block">
-                            <span className="stat-label">Expense</span>
-                            <span className="stat-value expense">{formatCurrency(currentSnapshot.metrics.total_expense)}</span>
-                        </div>
-                    </div>
-
-                    <div className="savings-rate-container">
-                        <span className="sr-label">Savings Rate</span>
-                        <span className={`sr-value ${currentSnapshot.metrics.savings_rate >= 0 ? 'positive' : 'negative'}`}>
-                            {currentSnapshot.metrics.savings_rate.toFixed(1)}%
-                        </span>
-                    </div>
-
-                    {/* Dynamic List Section (Categories/Goals/Budgets) */}
-                    <div className="categories-section">
-                        <h4>{listContent.title}</h4>
-                        <div className="categories-list">
-                            {listType === 'categories' && listContent.items.map((cat, idx) => (
-                                <div key={cat.category} className="category-row">
-                                    <div className="cat-info">
-                                        <span className="cat-name">{cat.category}</span>
-                                        <div className="progress-bg">
-                                            <motion.div
-                                                className="progress-fill"
-                                                style={{ backgroundColor: getCategoryColor(idx) }}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${(cat.amount / maxAmount) * 100}%` }}
-                                                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <span className="cat-amount">{formatCurrency(cat.amount)}</span>
+                                if (swipe < -50) {
+                                    goToNext();
+                                } else if (swipe > 50) {
+                                    goToPrevious();
+                                }
+                            }}
+                        >
+                            {/* Header */}
+                            <div className="snapshot-header">
+                                <div className="month-selector">
+                                    <span className="current-month">
+                                        {getMonthName(currentSnapshot.month)} {currentSnapshot.year}
+                                    </span>
                                 </div>
-                            ))}
-
-                            {listType === 'goals' && listContent.items.map((goal, idx) => (
-                                <div key={goal.name} className="category-row">
-                                    <div className="cat-info">
-                                        <span className="cat-name">{goal.name}</span>
-                                        <div className="progress-bg">
-                                            <motion.div
-                                                className="progress-fill"
-                                                style={{ backgroundColor: getCategoryColor(idx) }}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${goal.progress_percent}%` }}
-                                                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <span className="cat-amount">{goal.progress_percent.toFixed(0)}%</span>
+                                <div className={`net-savings ${currentSnapshot.metrics.net_savings >= 0 ? 'positive' : 'negative'}`}>
+                                    {currentSnapshot.metrics.net_savings >= 0 ? '+' : ''}{formatCurrency(currentSnapshot.metrics.net_savings)}
                                 </div>
-                            ))}
+                            </div>
 
-                            {listType === 'budgets' && listContent.items.map((budget, idx) => (
-                                <div key={budget.category} className="category-row">
-                                    <div className="cat-info">
-                                        <span className="cat-name">{budget.category}</span>
-                                        <div className="progress-bg">
-                                            <motion.div
-                                                className="progress-fill"
-                                                style={{ backgroundColor: getCategoryColor(idx), opacity: budget.status === 'exceeded' ? 0.5 : 1 }}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${Math.min(budget.utilization_percent, 100)}%` }}
-                                                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <span className="cat-amount">{budget.utilization_percent.toFixed(0)}%</span>
+                            {/* Main Stats */}
+                            <div className="main-stats">
+                                <div className="stat-block">
+                                    <span className="stat-label">Income</span>
+                                    <span className="stat-value income">{formatCurrency(currentSnapshot.metrics.total_income)}</span>
                                 </div>
-                            ))}
+                                <div className="stat-divider"></div>
+                                <div className="stat-block">
+                                    <span className="stat-label">Expense</span>
+                                    <span className="stat-value expense">{formatCurrency(currentSnapshot.metrics.total_expense)}</span>
+                                </div>
+                            </div>
 
-                            {listType === 'empty' && (
-                                <p className="no-data-text" style={{ fontSize: '0.9rem', color: '#6B7280', fontStyle: 'italic' }}>
-                                    No specific breakdown available for this month.
-                                </p>
-                            )}
-                        </div>
-                    </div>
+                            <div className="savings-rate-container">
+                                <span className="sr-label">Savings Rate</span>
+                                <span className={`sr-value ${currentSnapshot.metrics.savings_rate >= 0 ? 'positive' : 'negative'}`}>
+                                    {currentSnapshot.metrics.savings_rate.toFixed(1)}%
+                                </span>
+                            </div>
 
-                    {/* Action Buttons */}
-                    <div className="analysis-actions">
-                        <button className="action-button" onClick={() => openModal('trends')}>
-                            <BarChartIcon className="btn-icon" />
-                            <span>Trends</span>
-                        </button>
-                        <button className="action-button" onClick={() => openModal('recommendations')}>
-                            <LightningBoltIcon className="btn-icon" />
-                            <span>Advice</span>
-                        </button>
-                    </div>
+                            {/* Dynamic List Section (Categories/Goals/Budgets) */}
+                            <div className="categories-section">
+                                <h4>{listContent.title}</h4>
+                                <div className="categories-list">
+                                    {listType === 'categories' && listContent.items.map((cat, idx) => (
+                                        <div key={cat.category} className="category-row">
+                                            <div className="cat-info">
+                                                <span className="cat-name">{cat.category}</span>
+                                                <div className="progress-bg">
+                                                    <motion.div
+                                                        className="progress-fill"
+                                                        style={{ backgroundColor: getCategoryColor(idx) }}
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${(cat.amount / maxAmount) * 100}%` }}
+                                                        transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <span className="cat-amount">{formatCurrency(cat.amount)}</span>
+                                        </div>
+                                    ))}
+
+                                    {listType === 'goals' && listContent.items.map((goal, idx) => (
+                                        <div key={goal.name} className="category-row">
+                                            <div className="cat-info">
+                                                <span className="cat-name">{goal.name}</span>
+                                                <div className="progress-bg">
+                                                    <motion.div
+                                                        className="progress-fill"
+                                                        style={{ backgroundColor: getCategoryColor(idx) }}
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${goal.progress_percent}%` }}
+                                                        transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <span className="cat-amount">{goal.progress_percent.toFixed(0)}%</span>
+                                        </div>
+                                    ))}
+
+                                    {listType === 'budgets' && listContent.items.map((budget, idx) => (
+                                        <div key={budget.category} className="category-row">
+                                            <div className="cat-info">
+                                                <span className="cat-name">{budget.category}</span>
+                                                <div className="progress-bg">
+                                                    <motion.div
+                                                        className="progress-fill"
+                                                        style={{ backgroundColor: getCategoryColor(idx), opacity: budget.status === 'exceeded' ? 0.5 : 1 }}
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${Math.min(budget.utilization_percent, 100)}%` }}
+                                                        transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <span className="cat-amount">{budget.utilization_percent.toFixed(0)}%</span>
+                                        </div>
+                                    ))}
+
+                                    {listType === 'empty' && (
+                                        <p className="no-data-text" style={{ fontSize: '0.9rem', color: '#6B7280', fontStyle: 'italic' }}>
+                                            No specific breakdown available for this month.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="analysis-actions">
+                                <button className="action-button" onClick={() => openModal('trends')} onPointerDownCapture={e => e.stopPropagation()}>
+                                    <BarChartIcon className="btn-icon" />
+                                    <span>Trends</span>
+                                </button>
+                                <button className="action-button" onClick={() => openModal('recommendations')} onPointerDownCapture={e => e.stopPropagation()}>
+                                    <LightningBoltIcon className="btn-icon" />
+                                    <span>Advice</span>
+                                </button>
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
 
                 <button className="carousel-arrow next" onClick={goToNext} aria-label="Next month">

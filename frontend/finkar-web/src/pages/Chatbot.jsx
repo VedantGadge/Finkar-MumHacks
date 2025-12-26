@@ -26,7 +26,7 @@ const Chatbot = () => {
     });
 
     const userId = parseInt(localStorage.getItem('finkar_user_id') || '1', 10);
-    const phoneNumber = "9876543210"; // Placeholder
+    const phoneNumber = localStorage.getItem('finkar_phone') || "9876543210";
 
     // Load messages from localStorage or use default greeting
     const [messages, setMessages] = useState(() => {
